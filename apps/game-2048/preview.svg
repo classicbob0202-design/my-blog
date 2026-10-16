@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" role="img" aria-label="2048 게임 화면 미리보기">
+  <title>2048 게임 화면 미리보기</title>
+  <rect x="0" y="0" width="400" height="400" rx="16" fill="#dfe3e8"/>
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Pretendard', 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-weight="700" text-anchor="middle" dominant-baseline="central">
+    <!-- 빈 칸: 간격 12, 칸 85 -->
+    <g fill="#eef1f4">
+      <rect x="12" y="12" width="85" height="85" rx="8"/>
+      <rect x="109" y="12" width="85" height="85" rx="8"/>
+      <rect x="206" y="12" width="85" height="85" rx="8"/>
+      <rect x="303" y="12" width="85" height="85" rx="8"/>
+      <rect x="12" y="109" width="85" height="85" rx="8"/>
+      <rect x="109" y="109" width="85" height="85" rx="8"/>
+      <rect x="206" y="109" width="85" height="85" rx="8"/>
+      <rect x="303" y="109" width="85" height="85" rx="8"/>
+      <rect x="12" y="206" width="85" height="85" rx="8"/>
+      <rect x="109" y="206" width="85" height="85" rx="8"/>
+      <rect x="206" y="206" width="85" height="85" rx="8"/>
+      <rect x="303" y="206" width="85" height="85" rx="8"/>
+      <rect x="12" y="303" width="85" height="85" rx="8"/>
+      <rect x="109" y="303" width="85" height="85" rx="8"/>
+      <rect x="206" y="303" width="85" height="85" rx="8"/>
+      <rect x="303" y="303" width="85" height="85" rx="8"/>
+    </g>
+
+    <!-- 1행: 2048 512 128 32 -->
+    <rect x="12" y="12" width="85" height="85" rx="8" fill="#e0a800"/>
+    <text x="54.5" y="54.5" font-size="28" fill="#1f2328">2048</text>
+    <rect x="109" y="12" width="85" height="85" rx="8" fill="#14509e"/>
+    <text x="151.5" y="54.5" font-size="34" fill="#ffffff">512</text>
+    <rect x="206" y="12" width="85" height="85" rx="8" fill="#1f6fd1"/>
+    <text x="248.5" y="54.5" font-size="34" fill="#ffffff">128</text>
+    <rect x="303" y="12" width="85" height="85" rx="8" fill="#7fb0ee"/>
+    <text x="345.5" y="54.5" font-size="40" fill="#0f1215">32</text>
+
+    <!-- 2행: 4 16 8 2 -->
+    <rect x="12" y="109" width="85" height="85" rx="8" fill="#e8f1fc"/>
+    <text x="54.5" y="151.5" font-size="40" fill="#1f2328">4</text>
+    <rect x="109" y="109" width="85" height="85" rx="8" fill="#a9cbf5"/>
+    <text x="151.5" y="151.5" font-size="40" fill="#1f2328">16</text>
+    <rect x="206" y="109" width="85" height="85" rx="8" fill="#cfe2fa"/>
+    <text x="248.5" y="151.5" font-size="40" fill="#1f2328">8</text>
+    <rect x="303" y="109" width="85" height="85" rx="8" fill="#ffffff" stroke="#c9d0d8" stroke-width="1"/>
+    <text x="345.5" y="151.5" font-size="40" fill="#1f2328">2</text>
+
+    <!-- 3행: 2 _ 4 _ -->
+    <rect x="12" y="206" width="85" height="85" rx="8" fill="#ffffff" stroke="#c9d0d8" stroke-width="1"/>
+    <text x="54.5" y="248.5" font-size="40" fill="#1f2328">2</text>
+    <rect x="206" y="206" width="85" height="85" rx="8" fill="#e8f1fc"/>
+    <text x="248.5" y="248.5" font-size="40" fill="#1f2328">4</text>
+
+    <!-- 4행: _ _ 2 _ -->
+    <rect x="206" y="303" width="85" height="85" rx="8" fill="#ffffff" stroke="#c9d0d8" stroke-width="1"/>
+    <text x="248.5" y="345.5" font-size="40" fill="#1f2328">2</text>
+  </g>
+</svg>
