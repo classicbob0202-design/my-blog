@@ -4,6 +4,8 @@ const PLACEHOLDER = '\u0000';
 const PLACEHOLDER_RE = /\u0000(\d+)\u0000/g;
 
 const FENCE_RE = /^ {0,3}(`{3,}|~{3,})\s*([^\s`]*)/;
+const FENCE_CLOSE_RE = /^ {0,3}(`{3,}|~{3,})\s*$/;
+const TOP_FENCE_RE = /^(`{3,}|~{3,})/;
 const HEADING_RE = /^ {0,3}(#{1,6})(?:\s+(.*?))?(?:\s+#+)?\s*$/;
 const HR_RE = /^ {0,3}([-*_])(?:\s*\1){2,}\s*$/;
 const QUOTE_RE = /^ {0,3}> ?/;
@@ -19,9 +21,23 @@ export function parse(markdown) {
   const lines = String(markdown)
     .replace(/\r\n?/g, '\n')
     .replace(/\u0000/g, '')
-    .replace(/\t/g, '    ')
     .split('\n');
-  return parseBlocks(lines, false);
+  return parseBlocks(expandTabs(lines), false);
+}
+
+// 들여쓰기 계산을 위해 탭을 공백 네 칸으로 바꾼다.
+// 단, 맨 앞에서 시작한 코드 블록 안의 탭은 원문 그대로 둔다(Makefile 예제 등).
+function expandTabs(lines) {
+  let marker = null;
+  return lines.map((line) => {
+    if (marker) {
+      if (!isFenceClose(line, marker)) return line;
+      marker = null;
+    } else {
+      marker = line.match(TOP_FENCE_RE)?.[1] ?? null;
+    }
+    return line.replace(/\t/g, '    ');
+  });
 }
 
 /**
@@ -119,7 +135,12 @@ function parseBlocks(lines, tight) {
       const aligns = splitRow(lines[i + 1]).map(alignOf);
       const rows = [];
       i += 2;
-      while (i < lines.length && lines[i].trim() !== '' && lines[i].includes('|')) {
+      while (
+        i < lines.length &&
+        lines[i].trim() !== '' &&
+        lines[i].includes('|') &&
+        !interruptsParagraph(lines[i])
+      ) {
         rows.push(splitRow(lines[i]));
         i++;
       }
@@ -153,13 +174,10 @@ function parseBlocks(lines, tight) {
   return out.join('\n');
 }
 
+// 닫는 펜스: 들여쓰기 세 칸 이하, 여는 펜스와 같은 문자, 같거나 더 긴 길이.
 function isFenceClose(line, marker) {
-  const trimmed = line.trim();
-  return (
-    trimmed.length >= marker.length &&
-    trimmed[0] === marker[0] &&
-    /^(`+|~+)$/.test(trimmed)
-  );
+  const close = line.match(FENCE_CLOSE_RE);
+  return Boolean(close) && close[1][0] === marker[0] && close[1].length >= marker.length;
 }
 
 // 문단 중간에 나와도 새 블록으로 취급할 줄인지 확인한다.
@@ -288,13 +306,16 @@ function parseInline(text) {
     return result;
   };
 
-  // 1. 인라인 코드: 안쪽에는 다른 문법을 적용하지 않는다.
-  let s = text.replace(/(`+)([\s\S]*?[^`])\1(?!`)/g, (_, __, code) =>
-    keep(`<code>${escapeHtml(code.trim())}</code>`),
-  );
+  // 속성값(alt, title)에는 보관해 둔 태그 없이 글자만 넣는다.
+  const plain = (value) => restore(value).replace(/<[^>]*>/g, '');
 
-  // 2. 백슬래시 이스케이프 (\*, \_ 등)
-  s = s.replace(/\\([\\`*_{}[\]()#+\-.!~|>])/g, (_, ch) => keep(escapeHtml(ch)));
+  // 1~2. 백슬래시 이스케이프(\*, \` 등)와 인라인 코드를 왼쪽부터 함께 처리한다.
+  //      이스케이프한 백틱은 코드를 열지 않고, 코드 안에는 다른 문법을 적용하지 않는다.
+  let s = text.replace(
+    /\\([\\`*_{}[\]()#+\-.!~|>])|(`+)([\s\S]*?[^`])\2(?!`)/g,
+    (_, ch, __, code) =>
+      keep(ch ? escapeHtml(ch) : `<code>${escapeHtml(trimCode(code))}</code>`),
+  );
 
   // 3. 나머지 텍스트 HTML 이스케이프
   s = escapeHtml(s);
@@ -303,14 +324,14 @@ function parseInline(text) {
   s = s.replace(
     /!\[([^\]]*)\]\(([^)\s]*)(?:\s+&quot;(.*?)&quot;)?\)/g,
     (_, alt, url, title) => {
-      const titleAttr = title ? ` title="${title}"` : '';
-      return keep(`<img src="${safeUrl(restore(url))}" alt="${alt}"${titleAttr} loading="lazy">`);
+      const titleAttr = title ? ` title="${plain(title)}"` : '';
+      return keep(`<img src="${safeUrl(restore(url))}" alt="${plain(alt)}"${titleAttr} loading="lazy">`);
     },
   );
   s = s.replace(
     /\[([^\]]+)\]\(([^)\s]*)(?:\s+&quot;(.*?)&quot;)?\)/g,
     (_, label, url, title) => {
-      const titleAttr = title ? ` title="${title}"` : '';
+      const titleAttr = title ? ` title="${plain(title)}"` : '';
       return keep(`<a href="${safeUrl(restore(url))}"${titleAttr}>`) + label + keep('</a>');
     },
   );
@@ -327,6 +348,12 @@ function parseInline(text) {
   s = s.replace(/(?: {2,}|\\)\n/g, '<br>\n');
 
   return restore(s);
+}
+
+// 인라인 코드: 줄바꿈은 공백으로, 양끝이 모두 공백이면 한 칸씩만 벗긴다. 공백뿐이면 그대로 둔다.
+function trimCode(code) {
+  const flat = code.replace(/\n/g, ' ');
+  return /^ [\s\S]*[^ ][\s\S]* $/.test(flat) ? flat.slice(1, -1) : flat;
 }
 
 // javascript: 같은 위험한 프로토콜은 막고, 허용된 스킴과 상대 경로만 통과시킨다.

@@ -30,7 +30,9 @@ async function renderList() {
       .map((result) => result.value)
       .sort((a, b) => b.date.localeCompare(a.date));
 
+    const failed = results.length - posts.length;
     if (!posts.length) {
+      if (failed) throw new Error('글을 하나도 불러오지 못했습니다.');
       showMessage(container, '아직 작성된 글이 없습니다.');
       return;
     }
@@ -38,6 +40,9 @@ async function renderList() {
     const list = el('ul', 'post-list');
     list.append(...posts.map(createPostItem));
     container.replaceChildren(list);
+    if (failed) {
+      container.append(el('p', 'status-message', `글 ${failed}개를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.`));
+    }
   } catch (error) {
     console.error(error);
     showMessage(container, '글 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');

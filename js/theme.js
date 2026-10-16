@@ -25,13 +25,22 @@ function applyTheme(theme, button) {
   button?.setAttribute('aria-pressed', String(theme === 'dark'));
 }
 
+function preferredTheme() {
+  return getSavedTheme() ?? (darkQuery.matches ? 'dark' : 'light');
+}
+
 export function initTheme() {
   const button = document.querySelector('.theme-toggle');
-  applyTheme(getSavedTheme() ?? (darkQuery.matches ? 'dark' : 'light'), button);
+  applyTheme(preferredTheme(), button);
 
   // 직접 고른 적이 없으면 OS 설정 변경을 따라간다.
   darkQuery.addEventListener('change', (event) => {
     if (!getSavedTheme()) applyTheme(event.matches ? 'dark' : 'light', button);
+  });
+
+  // 다른 탭에서 테마를 바꾸거나 저장값을 지우면 따라간다(key가 null이면 저장소 전체 초기화).
+  window.addEventListener('storage', (event) => {
+    if (event.key === STORAGE_KEY || event.key === null) applyTheme(preferredTheme(), button);
   });
 
   button?.addEventListener('click', () => {
