@@ -1,9 +1,9 @@
-// 다크 모드 토글. 첫 테마 적용은 깜빡임 방지를 위해 각 HTML의 <head> 인라인 스크립트가 맡는다.
+// 다크 모드 토글. 초기 테마는 <head>의 인라인 스크립트가 먼저 적용한다.
 
 const STORAGE_KEY = 'theme';
-const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+const media = window.matchMedia('(prefers-color-scheme: dark)');
 
-function getSavedTheme() {
+function getStoredTheme() {
   try {
     const value = localStorage.getItem(STORAGE_KEY);
     return value === 'light' || value === 'dark' ? value : null;
@@ -12,40 +12,52 @@ function getSavedTheme() {
   }
 }
 
-function saveTheme(theme) {
+function storeTheme(theme) {
   try {
     localStorage.setItem(STORAGE_KEY, theme);
   } catch {
-    // 저장소를 쓸 수 없으면 이번 방문 동안만 유지된다.
+    // 저장할 수 없는 환경(사생활 보호 모드 등)에서는 이번 방문에만 적용한다.
   }
+}
+
+function systemTheme() {
+  return media.matches ? 'dark' : 'light';
+}
+
+function currentTheme() {
+  return document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
 }
 
 function applyTheme(theme, button) {
   document.documentElement.dataset.theme = theme;
-  button?.setAttribute('aria-pressed', String(theme === 'dark'));
+  button.setAttribute('aria-pressed', String(theme === 'dark'));
 }
 
-function preferredTheme() {
-  return getSavedTheme() ?? (darkQuery.matches ? 'dark' : 'light');
-}
-
-export function initTheme() {
+export function initThemeToggle() {
   const button = document.querySelector('.theme-toggle');
-  applyTheme(preferredTheme(), button);
+  if (!button) {
+    return;
+  }
 
-  // 직접 고른 적이 없으면 OS 설정 변경을 따라간다.
-  darkQuery.addEventListener('change', (event) => {
-    if (!getSavedTheme()) applyTheme(event.matches ? 'dark' : 'light', button);
-  });
+  applyTheme(getStoredTheme() ?? systemTheme(), button);
 
-  // 다른 탭에서 테마를 바꾸거나 저장값을 지우면 따라간다(key가 null이면 저장소 전체 초기화).
-  window.addEventListener('storage', (event) => {
-    if (event.key === STORAGE_KEY || event.key === null) applyTheme(preferredTheme(), button);
-  });
-
-  button?.addEventListener('click', () => {
-    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  button.addEventListener('click', () => {
+    const next = currentTheme() === 'dark' ? 'light' : 'dark';
     applyTheme(next, button);
-    saveTheme(next);
+    storeTheme(next);
+  });
+
+  // 직접 고른 값이 없으면 OS 설정 변경을 따라간다.
+  media.addEventListener('change', () => {
+    if (!getStoredTheme()) {
+      applyTheme(systemTheme(), button);
+    }
+  });
+
+  // 다른 탭에서 바꾼 값을 반영한다.
+  window.addEventListener('storage', (event) => {
+    if (event.key === STORAGE_KEY) {
+      applyTheme(getStoredTheme() ?? systemTheme(), button);
+    }
   });
 }

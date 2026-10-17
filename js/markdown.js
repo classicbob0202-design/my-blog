@@ -1,112 +1,134 @@
-// 마크다운 → HTML 변환기. DOM에 의존하지 않는 순수 함수만 둔다.
+// 마크다운 → HTML 변환기.
+// DOM에 의존하지 않는 순수 함수만 둔다. 원문 HTML은 지원하지 않고 모두 이스케이프한다.
 
-const PLACEHOLDER = '\u0000';
-const PLACEHOLDER_RE = /\u0000(\d+)\u0000/g;
-
-const FENCE_RE = /^ {0,3}(`{3,}|~{3,})\s*([^\s`]*)/;
-const FENCE_CLOSE_RE = /^ {0,3}(`{3,}|~{3,})\s*$/;
-const TOP_FENCE_RE = /^(`{3,}|~{3,})/;
-const HEADING_RE = /^ {0,3}(#{1,6})(?:\s+(.*?))?(?:\s+#+)?\s*$/;
-const HR_RE = /^ {0,3}([-*_])(?:\s*\1){2,}\s*$/;
+const FENCE_RE = /^ {0,3}(`{3,}|~{3,})[ \t]*([^`\s]*)[^`]*$/;
+const HEADING_RE = /^ {0,3}(#{1,6})(?:[ \t]+(.*?))?(?:[ \t]+#+)?[ \t]*$/;
+const HR_RE = /^ {0,3}([-*_])(?:[ \t]*\1){2,}[ \t]*$/;
 const QUOTE_RE = /^ {0,3}> ?/;
-const LIST_RE = /^( *)([-*+]|\d{1,9}[.)])(?: +|$)/;
-const TABLE_SEP_RE = /^ *\|? *:?-+:? *(?:\| *:?-+:? *)*\|? *$/;
-const ALLOWED_SCHEMES = ['http', 'https', 'mailto', 'tel'];
+const LIST_RE = /^( *)([-*+]|\d{1,9}[.)])(?:( +)(.*))?$/;
+const PLACEHOLDER_RE = /\u0000(\d+)\u0000/g;
+const SAFE_SCHEMES = ['http', 'https', 'mailto'];
 
-/**
- * 마크다운 문자열을 HTML 문자열로 변환한다.
- * 본문 텍스트는 모두 이스케이프되므로 원시 HTML은 그대로 글자로 보인다.
- */
-export function parse(markdown) {
-  const lines = String(markdown)
-    .replace(/\r\n?/g, '\n')
-    .replace(/\u0000/g, '')
-    .split('\n');
-  return parseBlocks(expandTabs(lines), false);
+const ESCAPES = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+};
+
+export function escapeHtml(str) {
+  return str.replace(/[&<>"']/g, (ch) => ESCAPES[ch]);
 }
 
-// 들여쓰기 계산을 위해 탭을 공백 네 칸으로 바꾼다.
-// 단, 맨 앞에서 시작한 코드 블록 안의 탭은 원문 그대로 둔다(Makefile 예제 등).
-function expandTabs(lines) {
-  let marker = null;
-  return lines.map((line) => {
-    if (marker) {
-      if (!isFenceClose(line, marker)) return line;
-      marker = null;
-    } else {
-      marker = line.match(TOP_FENCE_RE)?.[1] ?? null;
+// 허용된 프로토콜(http, https, mailto)이나 상대 경로만 통과시킨다.
+function safeUrl(url) {
+  const normalized = url.replace(/[\u0000- \u007f-\u009f]/g, '').toLowerCase();
+  const scheme = normalized.match(/^([a-z][a-z0-9+.-]*):/);
+  if (scheme && !SAFE_SCHEMES.includes(scheme[1])) {
+    return null;
+  }
+  return url;
+}
+
+// front matter(--- 로 감싼 맨 위 블록)를 읽어 메타데이터와 본문으로 나눈다.
+export function parseFrontMatter(text) {
+  const src = String(text).replace(/^﻿/, '').replace(/\r\n?/g, '\n');
+  const match = src.match(/^---\n(?:([\s\S]*?)\n)?---[ \t]*(?:\n|$)/);
+  if (!match) {
+    return { meta: {}, body: src };
+  }
+
+  const meta = {};
+  for (const line of (match[1] || '').split('\n')) {
+    const pair = line.match(/^([A-Za-z_][\w-]*)\s*:\s*(.*)$/);
+    if (!pair) {
+      continue;
     }
-    return line.replace(/\t/g, '    ');
-  });
-}
-
-/**
- * 문서 맨 위의 front matter(--- 사이의 key: value)를 분리한다.
- * 값이 [a, b] 형태면 배열로 바꾼다.
- */
-export function parseFrontMatter(source) {
-  const text = String(source).replace(/^﻿/, '');
-  const match = text.match(/^---\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)/);
-  if (!match) return { data: {}, body: text };
-
-  const data = {};
-  for (const line of match[1].split(/\r?\n/)) {
-    const pair = line.match(/^([\w-]+)\s*:\s*(.*)$/);
-    if (pair) data[pair[1]] = parseValue(pair[2].trim());
+    const raw = pair[2].trim();
+    if (raw.startsWith('[') && raw.endsWith(']')) {
+      meta[pair[1]] = raw
+        .slice(1, -1)
+        .split(',')
+        .map((item) => unquote(item.trim()))
+        .filter(Boolean);
+    } else {
+      meta[pair[1]] = unquote(raw);
+    }
   }
-  return { data, body: text.slice(match[0].length) };
-}
-
-function parseValue(value) {
-  if (value.startsWith('[') && value.endsWith(']')) {
-    return value
-      .slice(1, -1)
-      .split(',')
-      .map((item) => unquote(item.trim()))
-      .filter(Boolean);
-  }
-  return unquote(value);
+  return { meta, body: src.slice(match[0].length) };
 }
 
 function unquote(value) {
-  return /^(["']).*\1$/.test(value) ? value.slice(1, -1) : value;
+  const quoted = value.match(/^(["'])(.*)\1$/);
+  return quoted ? quoted[2] : value;
 }
 
-// ---------------------------------------------------------------------------
-// 블록 문법
+export function parse(markdown) {
+  const lines = String(markdown)
+    .replace(/\u0000/g, '�')
+    .replace(/\r\n?/g, '\n')
+    .split('\n')
+    .map((line) => line.replace(/^\t+/, (tabs) => '    '.repeat(tabs.length)));
+  return parseBlocks(lines);
+}
 
-function parseBlocks(lines, tight) {
+// ---------- 블록 ----------
+
+function leadingSpaces(line) {
+  return line.match(/^ */)[0].length;
+}
+
+function isBlank(line) {
+  return line.trim() === '';
+}
+
+function isBlockStart(lines, i) {
+  const line = lines[i];
+  return (
+    FENCE_RE.test(line) ||
+    HEADING_RE.test(line) ||
+    HR_RE.test(line) ||
+    QUOTE_RE.test(line) ||
+    LIST_RE.test(line) ||
+    isTableStart(lines, i)
+  );
+}
+
+// tight가 true면 문단을 <p>로 감싸지 않는다(빈 줄 없는 목록 항목).
+function parseBlocks(lines, tight = false) {
   const out = [];
   let i = 0;
 
   while (i < lines.length) {
     const line = lines[i];
+    let match;
 
-    if (line.trim() === '') {
+    if (isBlank(line)) {
       i++;
       continue;
     }
 
-    const fence = line.match(FENCE_RE);
-    if (fence) {
-      const marker = fence[1];
-      const lang = fence[2].replace(/[^\w+-]/g, '');
+    if ((match = line.match(FENCE_RE))) {
+      const fence = match[1];
+      const lang = match[2].replace(/[^\w#+-]/g, '');
+      const indent = leadingSpaces(line);
+      const closeRe = new RegExp(`^ {0,3}${fence[0]}{${fence.length},}[ \\t]*$`);
       const code = [];
       i++;
-      while (i < lines.length && !isFenceClose(lines[i], marker)) {
-        code.push(lines[i]);
+      while (i < lines.length && !closeRe.test(lines[i])) {
+        code.push(lines[i].slice(Math.min(indent, leadingSpaces(lines[i]))));
         i++;
       }
-      i++; // 닫는 펜스 건너뛰기
-      const cls = lang ? ` class="language-${lang}"` : '';
+      i++; // 닫는 펜스. 없으면 문서 끝까지 코드로 본다.
+      const cls = lang ? ` class="language-${escapeHtml(lang)}"` : '';
       out.push(`<pre><code${cls}>${escapeHtml(code.join('\n'))}</code></pre>`);
       continue;
     }
 
-    const heading = line.match(HEADING_RE);
-    if (heading) {
-      const level = heading[1].length;
-      out.push(`<h${level}>${parseInline(heading[2] ?? '')}</h${level}>`);
+    if ((match = line.match(HEADING_RE))) {
+      const level = match[1].length;
+      out.push(`<h${level}>${parseInline(match[2] || '')}</h${level}>`);
       i++;
       continue;
     }
@@ -118,257 +140,227 @@ function parseBlocks(lines, tight) {
     }
 
     if (QUOTE_RE.test(line)) {
-      const quote = [];
-      while (
-        i < lines.length &&
-        (QUOTE_RE.test(lines[i]) || (lines[i].trim() !== '' && !interruptsParagraph(lines[i])))
-      ) {
-        quote.push(lines[i].replace(QUOTE_RE, ''));
+      const inner = [];
+      while (i < lines.length && QUOTE_RE.test(lines[i])) {
+        inner.push(lines[i].replace(QUOTE_RE, ''));
         i++;
       }
-      out.push(`<blockquote>\n${parseBlocks(quote, false)}\n</blockquote>`);
-      continue;
-    }
-
-    if (isTableStart(lines, i)) {
-      const header = splitRow(line);
-      const aligns = splitRow(lines[i + 1]).map(alignOf);
-      const rows = [];
-      i += 2;
-      while (
-        i < lines.length &&
-        lines[i].trim() !== '' &&
-        lines[i].includes('|') &&
-        !interruptsParagraph(lines[i])
-      ) {
-        rows.push(splitRow(lines[i]));
-        i++;
-      }
-      out.push(renderTable(header, aligns, rows));
+      out.push(`<blockquote>\n${parseBlocks(inner)}\n</blockquote>`);
       continue;
     }
 
     if (LIST_RE.test(line)) {
-      const [html, next] = parseList(lines, i);
-      out.push(html);
-      i = next;
+      const list = parseList(lines, i);
+      out.push(list.html);
+      i = list.next;
       continue;
     }
 
-    // 문단: 빈 줄이나 다른 블록이 시작될 때까지 이어진다.
-    const para = [line.replace(/^ +/, '')];
-    i++;
-    while (
-      i < lines.length &&
-      lines[i].trim() !== '' &&
-      !interruptsParagraph(lines[i]) &&
-      !isTableStart(lines, i)
-    ) {
-      para.push(lines[i].replace(/^ +/, ''));
-      i++;
+    if (isTableStart(lines, i)) {
+      const table = parseTable(lines, i);
+      out.push(table.html);
+      i = table.next;
+      continue;
     }
-    const html = parseInline(para.join('\n').trimEnd());
+
+    const para = [];
+    do {
+      para.push(lines[i].replace(/^\s+/, ''));
+      i++;
+    } while (i < lines.length && !isBlank(lines[i]) && !isBlockStart(lines, i));
+    const html = parseInline(para.join('\n').replace(/\s+$/, ''));
     out.push(tight ? html : `<p>${html}</p>`);
   }
 
   return out.join('\n');
 }
 
-// 닫는 펜스: 들여쓰기 세 칸 이하, 여는 펜스와 같은 문자, 같거나 더 긴 길이.
-function isFenceClose(line, marker) {
-  const close = line.match(FENCE_CLOSE_RE);
-  return Boolean(close) && close[1][0] === marker[0] && close[1].length >= marker.length;
+function listKey(marker) {
+  // 순서 없는 목록은 기호(-, *, +), 순서 있는 목록은 구분자(., ))가 같아야 같은 목록이다.
+  return /\d/.test(marker) ? marker.slice(-1) : marker;
 }
 
-// 문단 중간에 나와도 새 블록으로 취급할 줄인지 확인한다.
-// 순서 있는 목록은 "1."로 시작할 때만 문단을 끊는다("2026. 10월" 같은 문장 보호).
-function interruptsParagraph(line) {
-  if (FENCE_RE.test(line) || HEADING_RE.test(line) || HR_RE.test(line) || QUOTE_RE.test(line)) {
-    return true;
-  }
-  const list = line.match(LIST_RE);
-  return Boolean(list) && (!/\d/.test(list[2]) || parseInt(list[2], 10) === 1);
-}
-
-function parseList(lines, i) {
-  const first = lines[i].match(LIST_RE);
-  const indent = first[1].length;
+function parseList(lines, start) {
+  const first = lines[start].match(LIST_RE);
   const ordered = /\d/.test(first[2]);
+  const key = listKey(first[2]);
   const items = [];
   let loose = false;
+  let i = start;
 
-  const isSibling = (line) => {
-    const m = line?.match(LIST_RE);
-    return Boolean(m) && m[1].length === indent && /\d/.test(m[2]) === ordered && !HR_RE.test(line);
-  };
+  while (i < lines.length) {
+    const match = lines[i].match(LIST_RE);
+    if (!match || listKey(match[2]) !== key) {
+      break;
+    }
 
-  while (i < lines.length && isSibling(lines[i])) {
-    const marker = lines[i].match(LIST_RE);
-    const contentIndent = marker[0].length;
-    const body = [lines[i].slice(contentIndent)];
+    const indent = match[1].length;
+    const spaces = match[3] ? match[3].length : 1;
+    const contentIndent = indent + match[2].length + (spaces <= 4 ? spaces : 1);
+    const body = [match[4] || ''];
     i++;
 
     while (i < lines.length) {
       const line = lines[i];
-      if (line.trim() === '') {
-        body.push('');
-        i++;
-        continue;
+      if (isBlank(line)) {
+        let j = i + 1;
+        while (j < lines.length && isBlank(lines[j])) {
+          j++;
+        }
+        if (j < lines.length && leadingSpaces(lines[j]) >= contentIndent) {
+          for (; i < j; i++) {
+            body.push('');
+          }
+          loose = true;
+          continue;
+        }
+        break;
       }
-      const lead = line.length - line.trimStart().length;
+
+      const lead = leadingSpaces(line);
       if (lead > indent) {
-        // 들여쓴 줄은 이 항목의 내용(중첩 목록 포함)이다.
         body.push(line.slice(Math.min(lead, contentIndent)));
         i++;
         continue;
       }
-      if (body[body.length - 1] !== '' && !LIST_RE.test(line) && !interruptsParagraph(line)) {
-        // 들여쓰지 않고 이어 쓴 문장
-        body.push(line.trimStart());
+      // 들여쓰지 않은 줄이 바로 이어지면 앞 문단의 연속으로 본다.
+      if (!isBlank(body[body.length - 1]) && !isBlockStart(lines, i)) {
+        body.push(line);
         i++;
         continue;
       }
       break;
     }
 
-    let trailingBlank = false;
-    while (body.length && body[body.length - 1] === '') {
-      body.pop();
-      trailingBlank = true;
-    }
-    if (body.includes('')) loose = true;
     items.push(body);
 
-    if (trailingBlank) {
-      if (i < lines.length && isSibling(lines[i])) loose = true;
-      else break;
+    let j = i;
+    while (j < lines.length && isBlank(lines[j])) {
+      j++;
     }
+    const next = j < lines.length ? lines[j].match(LIST_RE) : null;
+    if (!next || listKey(next[2]) !== key) {
+      break;
+    }
+    if (j > i) {
+      loose = true;
+    }
+    i = j;
   }
 
   const tag = ordered ? 'ol' : 'ul';
-  const startNumber = parseInt(first[2], 10);
-  const start = ordered && startNumber !== 1 ? ` start="${startNumber}"` : '';
-  const html = items.map((body) => `<li>${parseBlocks(body, !loose)}</li>`).join('\n');
-  return [`<${tag}${start}>\n${html}\n</${tag}>`, i];
-}
-
-function isTableStart(lines, i) {
-  const next = lines[i + 1];
-  return (
-    lines[i].includes('|') &&
-    next !== undefined &&
-    next.includes('-') &&
-    TABLE_SEP_RE.test(next) &&
-    splitRow(next).length === splitRow(lines[i]).length
-  );
+  const startNum = ordered ? parseInt(first[2], 10) : 1;
+  const startAttr = startNum !== 1 ? ` start="${startNum}"` : '';
+  const lis = items.map((body) => `<li>${parseBlocks(body, !loose)}</li>`).join('\n');
+  return { html: `<${tag}${startAttr}>\n${lis}\n</${tag}>`, next: i };
 }
 
 function splitRow(line) {
   let row = line.trim();
-  if (row.startsWith('|')) row = row.slice(1);
-  if (row.endsWith('|') && !row.endsWith('\\|')) row = row.slice(0, -1);
+  if (row.startsWith('|')) {
+    row = row.slice(1);
+  }
+  if (row.endsWith('|') && !row.endsWith('\\|')) {
+    row = row.slice(0, -1);
+  }
   return row.split(/(?<!\\)\|/).map((cell) => cell.trim().replace(/\\\|/g, '|'));
 }
 
-function alignOf(cell) {
-  const left = cell.startsWith(':');
-  const right = cell.endsWith(':');
-  if (left && right) return 'center';
-  if (right) return 'right';
-  if (left) return 'left';
-  return '';
+function isTableStart(lines, i) {
+  if (i + 1 >= lines.length || !lines[i].includes('|') || !lines[i + 1].includes('|')) {
+    return false;
+  }
+  const separator = splitRow(lines[i + 1]);
+  return (
+    separator.every((cell) => /^:?-+:?$/.test(cell)) &&
+    splitRow(lines[i]).length === separator.length
+  );
 }
 
-function renderTable(header, aligns, rows) {
-  const cell = (tag, text, index) => {
-    const align = aligns[index] ? ` style="text-align: ${aligns[index]}"` : '';
-    return `<${tag}${align}>${parseInline(text ?? '')}</${tag}>`;
+function parseTable(lines, start) {
+  const header = splitRow(lines[start]);
+  const aligns = splitRow(lines[start + 1]).map((cell) => {
+    if (cell.startsWith(':') && cell.endsWith(':')) return 'center';
+    if (cell.endsWith(':')) return 'right';
+    if (cell.startsWith(':')) return 'left';
+    return '';
+  });
+  const rows = [];
+  let i = start + 2;
+  while (i < lines.length && !isBlank(lines[i]) && lines[i].includes('|')) {
+    rows.push(splitRow(lines[i]));
+    i++;
+  }
+
+  const cell = (tag, text, k) => {
+    const style = aligns[k] ? ` style="text-align: ${aligns[k]}"` : '';
+    return `<${tag}${style}>${parseInline(text || '')}</${tag}>`;
   };
-  const head = `<tr>${header.map((text, index) => cell('th', text, index)).join('')}</tr>`;
+  const head = `<tr>${header.map((text, k) => cell('th', text, k)).join('')}</tr>`;
   const body = rows
-    .map((row) => `<tr>${header.map((_, index) => cell('td', row[index], index)).join('')}</tr>`)
+    .map((row) => `<tr>${header.map((_, k) => cell('td', row[k], k)).join('')}</tr>`)
     .join('\n');
-  const tbody = rows.length ? `<tbody>\n${body}\n</tbody>\n` : '';
-  return `<div class="table-wrap"><table>\n<thead>${head}</thead>\n${tbody}</table></div>`;
+
+  const html =
+    '<div class="table-wrap"><table>\n' +
+    `<thead>\n${head}\n</thead>\n` +
+    (rows.length ? `<tbody>\n${body}\n</tbody>\n` : '') +
+    '</table></div>';
+  return { html, next: i };
 }
 
-// ---------------------------------------------------------------------------
-// 인라인 문법
+// ---------- 인라인 ----------
 
 function parseInline(text) {
-  const stash = [];
-  const keep = (html) => `${PLACEHOLDER}${stash.push(html) - 1}${PLACEHOLDER}`;
-  const restore = (value) => {
-    let result = value;
-    while (PLACEHOLDER_RE.test(result)) {
-      result = result.replace(PLACEHOLDER_RE, (_, n) => stash[n]);
-    }
-    return result;
-  };
+  const tokens = [];
+  // 변환이 끝난 HTML 조각은 자리표시자로 빼 두어 이후 규칙이 건드리지 못하게 한다.
+  const stash = (html) => `\u0000${tokens.push(html) - 1}\u0000`;
+  // 속성 값에 넣을 때는 자리표시자를 태그 없는 글자로 되돌린다.
+  const plain = (str) => str.replace(PLACEHOLDER_RE, (_, n) => tokens[n].replace(/<[^>]*>/g, ''));
 
-  // 속성값(alt, title)에는 보관해 둔 태그 없이 글자만 넣는다.
-  const plain = (value) => restore(value).replace(/<[^>]*>/g, '');
+  let s = escapeHtml(text);
 
-  // 1~2. 백슬래시 이스케이프(\*, \` 등)와 인라인 코드를 왼쪽부터 함께 처리한다.
-  //      이스케이프한 백틱은 코드를 열지 않고, 코드 안에는 다른 문법을 적용하지 않는다.
-  let s = text.replace(
-    /\\([\\`*_{}[\]()#+\-.!~|>])|(`+)([\s\S]*?[^`])\2(?!`)/g,
-    (_, ch, __, code) =>
-      keep(ch ? escapeHtml(ch) : `<code>${escapeHtml(trimCode(code))}</code>`),
-  );
+  s = s.replace(/(`+)([\s\S]+?)\1(?!`)/g, (_, ticks, code) => {
+    const trimmed = /^ [\s\S]* $/.test(code) && code.trim() ? code.slice(1, -1) : code;
+    return stash(`<code>${trimmed}</code>`);
+  });
 
-  // 3. 나머지 텍스트 HTML 이스케이프
-  s = escapeHtml(s);
+  s = s.replace(/\\\n/g, () => stash('<br>\n'));
+  s = s.replace(/\\([\\`*_{}[\]()#+\-.!~|])/g, (_, ch) => stash(ch));
 
-  // 4. 이미지와 링크 (주소 안의 _ 나 * 가 강조로 바뀌지 않도록 태그를 보관해 둔다)
   s = s.replace(
-    /!\[([^\]]*)\]\(([^)\s]*)(?:\s+&quot;(.*?)&quot;)?\)/g,
-    (_, alt, url, title) => {
+    /!\[([^\]]*)\]\(\s*([^\s)]+)(?:\s+&quot;(.*?)&quot;)?\s*\)/g,
+    (_, alt, src, title) => {
+      const url = safeUrl(plain(src));
+      if (!url) {
+        return stash(plain(alt));
+      }
       const titleAttr = title ? ` title="${plain(title)}"` : '';
-      return keep(`<img src="${safeUrl(restore(url))}" alt="${plain(alt)}"${titleAttr} loading="lazy">`);
-    },
-  );
-  s = s.replace(
-    /\[([^\]]+)\]\(([^)\s]*)(?:\s+&quot;(.*?)&quot;)?\)/g,
-    (_, label, url, title) => {
-      const titleAttr = title ? ` title="${plain(title)}"` : '';
-      return keep(`<a href="${safeUrl(restore(url))}"${titleAttr}>`) + label + keep('</a>');
+      return stash(`<img src="${url}" alt="${plain(alt)}"${titleAttr} loading="lazy">`);
     },
   );
 
-  // 5. 강조. 밑줄(_)은 단어 중간(예: snake_case, 한글_이름)에서는 무시한다.
+  s = s.replace(
+    /\[([^\]]+)\]\(\s*([^\s)]+)(?:\s+&quot;(.*?)&quot;)?\s*\)/g,
+    (_, label, href, title) => {
+      const url = safeUrl(plain(href));
+      if (!url) {
+        return label;
+      }
+      const titleAttr = title ? ` title="${plain(title)}"` : '';
+      const rel = /^https?:/i.test(url) ? ' rel="noopener noreferrer"' : '';
+      return `${stash(`<a href="${url}"${titleAttr}${rel}>`)}${label}${stash('</a>')}`;
+    },
+  );
+
   s = s.replace(/\*\*\*(?=\S)([\s\S]*?\S)\*\*\*/g, '<strong><em>$1</em></strong>');
   s = s.replace(/\*\*(?=\S)([\s\S]*?\S)\*\*/g, '<strong>$1</strong>');
   s = s.replace(/(^|[^\p{L}\p{N}_])__(?=\S)([\s\S]*?\S)__(?![\p{L}\p{N}_])/gu, '$1<strong>$2</strong>');
+  s = s.replace(/~~(?=\S)([\s\S]*?\S)~~/g, '<del>$1</del>');
   s = s.replace(/\*(?=\S)([\s\S]*?\S)\*/g, '<em>$1</em>');
   s = s.replace(/(^|[^\p{L}\p{N}_])_(?=\S)([\s\S]*?\S)_(?![\p{L}\p{N}_])/gu, '$1<em>$2</em>');
-  s = s.replace(/~~(?=\S)([\s\S]*?\S)~~/g, '<del>$1</del>');
 
-  // 6. 줄 끝 공백 두 칸 또는 백슬래시는 줄바꿈
-  s = s.replace(/(?: {2,}|\\)\n/g, '<br>\n');
+  s = s.replace(/ {2,}\n/g, '<br>\n');
 
-  return restore(s);
-}
-
-// 인라인 코드: 줄바꿈은 공백으로, 양끝이 모두 공백이면 한 칸씩만 벗긴다. 공백뿐이면 그대로 둔다.
-function trimCode(code) {
-  const flat = code.replace(/\n/g, ' ');
-  return /^ [\s\S]*[^ ][\s\S]* $/.test(flat) ? flat.slice(1, -1) : flat;
-}
-
-// javascript: 같은 위험한 프로토콜은 막고, 허용된 스킴과 상대 경로만 통과시킨다.
-function safeUrl(url) {
-  const compact = url.replace(/[\u0000- \u007f]/g, '');
-  const scheme = compact.match(/^([a-z][a-z0-9+.-]*):/i);
-  if (scheme && !ALLOWED_SCHEMES.includes(scheme[1].toLowerCase())) return '#';
-  return url;
-}
-
-function escapeHtml(text) {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+  return s.replace(PLACEHOLDER_RE, (_, n) => tokens[n]);
 }

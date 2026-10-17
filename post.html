@@ -1,46 +1,46 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>My Blog</title>
   <script>
-    // 화면이 그려지기 전에 테마를 적용해 깜빡임을 막는다.
     (function () {
       var theme;
-      try { theme = localStorage.getItem('theme'); } catch (e) {}
+      try {
+        theme = localStorage.getItem('theme');
+      } catch (e) {}
       if (theme !== 'light' && theme !== 'dark') {
         theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
       }
-      document.documentElement.dataset.theme = theme;
+      document.documentElement.setAttribute('data-theme', theme);
     })();
   </script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="배운 것과 만든 것을 기록하는 블로그">
+  <title>내 블로그</title>
   <link rel="stylesheet" href="css/style.css">
   <script type="module" src="js/main.js"></script>
 </head>
 <body data-page="post">
   <header class="site-header">
     <div class="container site-header-inner">
-      <a class="site-title" href="index.html">My Blog</a>
-      <button class="theme-toggle" type="button" aria-label="다크 모드" aria-pressed="false">
-        <svg class="icon icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        <svg class="icon icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v2.5M12 20v2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M1.5 12H4M20 12h2.5M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></svg>
+      <a class="site-title" href="./">내 블로그</a>
+      <button class="theme-toggle" type="button" aria-label="다크 모드" aria-pressed="false" title="다크 모드 전환">
+        <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20">
+          <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/>
+        </svg>
       </button>
     </div>
   </header>
 
-  <main class="container site-main">
-    <nav aria-label="이동">
-      <a class="back-link" href="index.html">← 글 목록</a>
-    </nav>
-    <article id="post" class="post">
-      <p class="status-message">불러오는 중…</p>
-    </article>
+  <main class="container" id="content">
+    <p class="status">글을 불러오는 중…</p>
   </main>
 
   <footer class="site-footer">
     <div class="container">
-      <p>© 2026 My Blog</p>
+      <p><a href="./">← 글 목록으로</a></p>
     </div>
   </footer>
 </body>

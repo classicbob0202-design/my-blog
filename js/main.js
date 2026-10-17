@@ -1,154 +1,196 @@
 import { parse, parseFrontMatter } from './markdown.js';
-import { initTheme } from './theme.js';
+import { initThemeToggle } from './theme.js';
 
-const SITE_NAME = 'My Blog';
-const POSTS_DIR = 'posts';
-const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const dateFormatter = new Intl.DateTimeFormat('ko-KR', { dateStyle: 'long', timeZone: 'UTC' });
+const SITE_NAME = '내 블로그';
+const SLUG_RE = /^[a-z0-9-]+$/;
+const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
-initTheme();
-
-const page = document.body.dataset.page;
-if (page === 'list') renderList();
-if (page === 'post') renderPost();
-
-// ---------------------------------------------------------------------------
-// 페이지 렌더링
-
-async function renderList() {
-  const container = document.querySelector('#post-list');
-  try {
-    const slugs = JSON.parse(await fetchText(`${POSTS_DIR}/index.json`));
-    const results = await Promise.allSettled(slugs.filter((slug) => SLUG_RE.test(slug)).map(loadPost));
-
-    results
-      .filter((result) => result.status === 'rejected')
-      .forEach((result) => console.warn(result.reason));
-
-    const posts = results
-      .filter((result) => result.status === 'fulfilled')
-      .map((result) => result.value)
-      .sort((a, b) => b.date.localeCompare(a.date));
-
-    const failed = results.length - posts.length;
-    if (!posts.length) {
-      if (failed) throw new Error('글을 하나도 불러오지 못했습니다.');
-      showMessage(container, '아직 작성된 글이 없습니다.');
-      return;
-    }
-
-    const list = el('ul', 'post-list');
-    list.append(...posts.map(createPostItem));
-    container.replaceChildren(list);
-    if (failed) {
-      container.append(el('p', 'status-message', `글 ${failed}개를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.`));
-    }
-  } catch (error) {
-    console.error(error);
-    showMessage(container, '글 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
+class LoadError extends Error {
+  constructor(status) {
+    super(`HTTP ${status}`);
+    this.status = status;
   }
 }
 
-async function renderPost() {
-  const container = document.querySelector('#post');
-  const slug = new URLSearchParams(location.search).get('slug') ?? '';
-
-  if (!SLUG_RE.test(slug)) {
-    showMessage(container, '잘못된 주소입니다.');
-    return;
+function el(tag, attrs = {}, children = []) {
+  const node = document.createElement(tag);
+  for (const [key, value] of Object.entries(attrs)) {
+    if (key === 'text') {
+      node.textContent = value;
+    } else {
+      node.setAttribute(key, value);
+    }
   }
-
-  try {
-    const post = await loadPost(slug);
-    document.title = `${post.title} · ${SITE_NAME}`;
-
-    const header = el('header', 'post-header');
-    header.append(el('h1', 'post-title', post.title), createMeta(post));
-
-    const content = el('div', 'post-content');
-    content.innerHTML = parse(post.body);
-
-    container.replaceChildren(header, content);
-  } catch (error) {
-    console.error(error);
-    showMessage(container, '글을 찾을 수 없습니다.');
+  for (const child of [].concat(children)) {
+    if (child) {
+      node.append(child);
+    }
   }
+  return node;
 }
-
-// ---------------------------------------------------------------------------
-// 데이터
 
 async function fetchText(url) {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`${url} 요청 실패: ${response.status}`);
-  return response.text();
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new LoadError(res.status);
+  }
+  return res.text();
 }
 
 async function loadPost(slug) {
-  const { data, body } = parseFrontMatter(await fetchText(`${POSTS_DIR}/${slug}.md`));
-  const tags = Array.isArray(data.tags) ? data.tags : data.tags ? [data.tags] : [];
+  const { meta, body } = parseFrontMatter(await fetchText(`posts/${slug}.md`));
   return {
     slug,
-    title: data.title || slug,
-    date: data.date || '',
-    description: data.description || '',
-    tags,
+    title: meta.title || slug,
+    date: typeof meta.date === 'string' ? meta.date : '',
+    tags: Array.isArray(meta.tags) ? meta.tags : [],
+    description: typeof meta.description === 'string' ? meta.description : '',
     body,
   };
 }
 
-// ---------------------------------------------------------------------------
-// DOM 조각
-
-function createPostItem(post) {
-  const item = el('li', 'post-item');
-  const article = el('article');
-
-  const title = el('h3', 'post-item-title');
-  const link = el('a', '', post.title);
-  link.href = `post.html?slug=${encodeURIComponent(post.slug)}`;
-  title.append(link);
-
-  article.append(title, createMeta(post));
-  if (post.description) article.append(el('p', 'post-item-description', post.description));
-
-  item.append(article);
-  return item;
+function formatDate(date) {
+  const match = date.match(DATE_RE);
+  if (!match) {
+    return date;
+  }
+  const [, y, m, d] = match;
+  return `${Number(y)}년 ${Number(m)}월 ${Number(d)}일`;
 }
 
-function createMeta(post) {
-  const meta = el('div', 'post-meta');
-
+function postMeta(post) {
+  const meta = el('p', { class: 'post-meta' });
   if (post.date) {
-    const time = el('time', '', formatDate(post.date));
-    time.dateTime = post.date;
-    meta.append(time);
+    meta.append(el('time', { datetime: post.date, text: formatDate(post.date) }));
   }
-
   if (post.tags.length) {
-    const tags = el('ul', 'tag-list');
-    tags.setAttribute('aria-label', '태그');
-    tags.append(...post.tags.map((tag) => el('li', 'tag', tag)));
+    const tags = el('span', { class: 'post-tags' });
+    for (const tag of post.tags) {
+      tags.append(el('span', { class: 'tag', text: `#${tag}` }));
+    }
     meta.append(tags);
   }
-
   return meta;
 }
 
-function showMessage(container, text) {
-  container.replaceChildren(el('p', 'status-message', text));
+function showMessage(root, title, detail, withBackLink = false) {
+  const box = el('section', { class: 'message', role: 'status' }, [
+    el('h2', { class: 'message-title', text: title }),
+    el('p', { text: detail }),
+  ]);
+  if (withBackLink) {
+    box.append(el('p', {}, el('a', { href: './', text: '← 글 목록으로' })));
+  }
+  root.querySelector('.status')?.remove();
+  root.append(box);
 }
 
-function el(tag, className = '', text = '') {
-  const node = document.createElement(tag);
-  if (className) node.className = className;
-  if (text) node.textContent = text;
-  return node;
+async function renderList(root) {
+  let slugs;
+  try {
+    const res = await fetch('posts/index.json');
+    if (!res.ok) {
+      throw new LoadError(res.status);
+    }
+    slugs = await res.json();
+    if (!Array.isArray(slugs)) {
+      throw new Error('index.json은 slug 배열이어야 합니다.');
+    }
+  } catch (error) {
+    console.error(error);
+    showMessage(root, '글 목록을 불러오지 못했습니다.', '잠시 후 다시 시도해 주세요.');
+    return;
+  }
+
+  const valid = slugs.filter((slug) => typeof slug === 'string' && SLUG_RE.test(slug));
+  const results = await Promise.allSettled(valid.map(loadPost));
+  const posts = [];
+  for (const result of results) {
+    if (result.status === 'fulfilled') {
+      posts.push(result.value);
+    } else {
+      console.error(result.reason);
+    }
+  }
+  const failed = slugs.length - posts.length;
+
+  if (posts.length === 0) {
+    if (failed > 0) {
+      showMessage(root, '글을 불러오지 못했습니다.', '잠시 후 다시 시도해 주세요.');
+    } else {
+      showMessage(root, '아직 글이 없습니다.', '첫 글을 기다려 주세요.');
+    }
+    return;
+  }
+
+  posts.sort((a, b) => b.date.localeCompare(a.date));
+
+  const list = el('ul', { class: 'post-list' });
+  for (const post of posts) {
+    const href = `post.html?slug=${encodeURIComponent(post.slug)}`;
+    list.append(
+      el('li', {}, el('article', { class: 'post-card' }, [
+        el('h2', { class: 'post-card-title' }, el('a', { href, text: post.title })),
+        postMeta(post),
+        post.description && el('p', { class: 'post-description', text: post.description }),
+      ])),
+    );
+  }
+
+  root.querySelector('.status')?.remove();
+  root.append(list);
+  if (failed > 0) {
+    root.append(el('p', { class: 'notice', text: `글 ${failed}편을 불러오지 못했습니다.` }));
+  }
 }
 
-function formatDate(value) {
-  const match = String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (!match) return value;
-  const [, year, month, day] = match.map(Number);
-  return dateFormatter.format(new Date(Date.UTC(year, month - 1, day)));
+async function renderPost(root) {
+  const slug = new URLSearchParams(location.search).get('slug');
+  if (!slug || !SLUG_RE.test(slug)) {
+    document.title = `글을 찾을 수 없습니다 · ${SITE_NAME}`;
+    showMessage(root, '글을 찾을 수 없습니다.', '주소가 올바른지 확인해 주세요.', true);
+    return;
+  }
+
+  let post;
+  try {
+    post = await loadPost(slug);
+  } catch (error) {
+    console.error(error);
+    if (error instanceof LoadError && error.status === 404) {
+      document.title = `글을 찾을 수 없습니다 · ${SITE_NAME}`;
+      showMessage(root, '글을 찾을 수 없습니다.', '삭제되었거나 주소가 잘못되었을 수 있습니다.', true);
+    } else {
+      showMessage(root, '글을 불러오지 못했습니다.', '잠시 후 다시 시도해 주세요.', true);
+    }
+    return;
+  }
+
+  document.title = `${post.title} · ${SITE_NAME}`;
+  if (post.description) {
+    document.querySelector('meta[name="description"]')?.setAttribute('content', post.description);
+  }
+
+  const content = el('div', { class: 'post-content' });
+  content.innerHTML = parse(post.body);
+
+  root.querySelector('.status')?.remove();
+  root.append(
+    el('article', { class: 'post' }, [
+      el('header', { class: 'post-header' }, [
+        el('h1', { class: 'post-title', text: post.title }),
+        postMeta(post),
+      ]),
+      content,
+    ]),
+  );
+}
+
+initThemeToggle();
+
+const root = document.getElementById('content');
+if (document.body.dataset.page === 'post') {
+  renderPost(root);
+} else {
+  renderList(root);
 }
