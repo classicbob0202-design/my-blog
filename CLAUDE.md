@@ -15,6 +15,7 @@
 
 ```
 my-blog/
+├── .nojekyll           # GitHub Pages의 Jekyll 처리 끄기 (.md 원본을 그대로 제공)
 ├── index.html          # 글 목록 페이지
 ├── post.html           # 글 상세 페이지 (post.html?slug=파일명)
 ├── css/
