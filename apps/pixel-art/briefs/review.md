@@ -1,0 +1,43 @@
+# Review 서브에이전트 지침 — 픽셀 아트 에디터
+
+## 역할
+너는 Review 단계 담당이다. Build 결과를 검증하고 `review.md`를 쓴다. 문제를 찾으면 앱 폴더 안에서 고친다. 너는 Build 담당과 다른 에이전트다 — 구현자의 보고를 믿지 말고 직접 확인한다.
+
+## 작업 범위
+- 작성: `C:\Users\bobby\Desktop\my-blog\apps\pixel-art\review.md`
+- 수정 가능: 같은 폴더의 `index.html`, `style.css`, `pixel.js`, `history.js`, `main.js`, `theme.js`, `preview.svg`
+- 수정 금지: `spec.md`, `briefs/`, `apps/pixel-art/` 밖의 모든 파일(블로그 `index.html`, `css/`, `js/`, `posts/`, `apps/game-2048/`, `CLAUDE.md`, `AGENTS.md` 등), git 작업
+
+## 따를 문서 (읽기만)
+- `C:\Users\bobby\Desktop\my-blog\apps\pixel-art\spec.md` — 기능 기준(2장), 로직 설계(4장), 디자인(6장), `preview.svg` 사양(7장), **8장 검증 체크리스트**(8.4 PNG 픽셀 확인 방법 포함), 10장 결정 사항
+- `C:\Users\bobby\Desktop\my-blog\CLAUDE.md` — 웹앱 규칙과 블로그 규칙의 디자인·다크 모드·반응형·코드 스타일. spec보다 나중에 추가된 규칙 두 가지도 검사한다:
+  - 블로그 색상 팔레트를 따른다(블로그 `css/style.css`의 색 변수 이름·값을 복사해 쓰는지).
+  - 사용법 안내 문구가 있다(그리기·도구·단축키·PNG 저장 방법이 화면에서 알 수 있는지).
+
+## 검사할 것
+1. spec 8장 체크리스트 전부 — 항목마다 통과 / 수정함 / 실패 / 확인 불가.
+2. 브라우저 `http://localhost:8000/apps/pixel-art/`: 콘솔 오류, 375px·768px·1280px 레이아웃과 가로 스크롤, 라이트/다크 대비, 탭 대상 44px, 키보드 그리기, 사용법 안내 문구.
+3. 코드: `innerHTML`, `!important`, `/`로 시작하는 경로, 컴포넌트 CSS의 색 리터럴(그림 팔레트 JS 상수는 허용), 전역 변수, try/catch 없는 `localStorage`, `pixel.js`·`history.js`의 DOM/`window`/`localStorage`/canvas 참조.
+4. 저장값: 깨진 JSON, 잘못된 필드, `localStorage` 예외(getItem/setItem을 일시적으로 throw하도록 바꿔서)에서도 앱이 열리고 그릴 수 있는지.
+5. PNG: 8.4 방법으로 실제 픽셀 값 확인. 다운로드는 클릭을 가로채도 된다.
+6. Build가 spec과 다르게 한 점(캔버스 테두리 안쪽 기준 좌표, 획 시작 도구 기억, 스포이드가 사용자 색을 갱신, 사용자 색 재선택, 커서 안쪽 선, 키보드만 위치 안내, 버튼 배경, 사용자 색 한 줄 배치, preview.svg 격자선 표기)이 합리적인지.
+
+## 고치는 기준
+- 버그, 규칙 위반, spec 불일치는 고친다. 고친 뒤 같은 항목을 다시 확인한다.
+- 큰 설계 변경이나 spec 자체의 문제는 고치지 말고 review.md에 "사용자 결정 필요"로 적는다.
+
+## review.md 형식 (한국어)
+- 요약(한 단락): 전체 판정
+- 검사 결과 표: 항목 / 결과 / 메모
+- 수정한 것: 파일, 무엇을, 왜
+- 남은 문제와 사용자 결정 필요 사항
+- 확인하지 못한 것(실기기 터치, 실제 파일 다운로드, 스크린 리더 등)
+
+## 스스로 지킬 것
+- **다른 Review 에이전트가 동시에 2048 앱을 검사한다.** 브라우저는 `tabs_create`로 새 탭을 만들어 그 `tabId`로만 작업하고, 다른 탭을 닫거나 조작하지 않는다. 서버(8000)는 이미 떠 있으니 끄지 않는다.
+- `theme` 키는 블로그·다른 앱과 공유한다. 다른 탭의 테마 변경이 `storage` 이벤트로 넘어와 테마가 갑자기 바뀔 수 있으니, 다크/라이트 확인 직전에 현재 테마를 다시 확인한다.
+- 시작할 때 `localStorage`의 `theme`, `pixel-art:state` 값을 기록해 두고, 끝날 때 정확히 그 상태로 돌린다(없던 키는 삭제). `game-2048:*` 키는 건드리지 않는다. 보고에 적는다.
+- 확인용 스크립트는 저장소 밖(임시 폴더)에 두고 지운다.
+
+## 끝나면
+review.md 경로, 판정, 수정한 파일과 요지, 남은 문제, 저장값 복원 여부를 짧게 보고한다.

@@ -39,6 +39,7 @@
 
 - `index.html`(목록)과 `post.html`(상세)은 모두 `js/main.js`를 불러오고, `<body data-page="list|post">` 값으로 어느 화면을 그릴지 정합니다.
 - **목록**: `posts/index.json`(slug 배열) → 각 `posts/{slug}.md`를 `fetch` → `parseFrontMatter()`로 메타데이터 추출 → `date` 기준 최신순 정렬 → `.post-list`로 렌더링. 일부 글만 실패하면 나머지는 보여주고 실패 개수를 안내합니다.
+- **웹앱 섹션**: `index.html`의 글 목록(`#content`) 아래 `.app-section` > `.app-list`. `main.js`가 그리지 않는 정적 HTML이며, 새 웹앱은 Embed 단계에서 `.app-card` 항목(제목 링크, 한 줄 설명, `preview.svg`)을 추가합니다.
 - **상세**: `post.html?slug=파일명`. slug는 `SLUG_RE`(`/^[a-z0-9-]+$/`)로 검증한 뒤 불러오고, 본문은 `parse()` 결과를 `.post-content`에 넣습니다. 문서 제목과 `meta[name="description"]`도 글에 맞게 바꿉니다.
 - DOM은 `main.js`의 `el()` 헬퍼로 만들고, 사용자 입력이나 글 메타데이터는 `textContent`로만 넣습니다. `innerHTML`은 `parse()` 결과에만 씁니다.
 - 불러오기 실패 시 빈 화면 대신 `showMessage()`로 안내합니다(404는 "글을 찾을 수 없습니다", 그 외는 "불러오지 못했습니다").
@@ -51,7 +52,7 @@ my-blog/
 ├── .nojekyll           # GitHub Pages의 Jekyll 처리 끄기
 ├── .claude/
 │   └── launch.json     # 로컬 미리보기 서버 설정 (python http.server, 8000)
-├── index.html          # 글 목록 페이지
+├── index.html          # 글 목록 + 웹앱 섹션
 ├── post.html           # 글 상세 페이지 (post.html?slug=파일명)
 ├── css/
 │   └── style.css       # 전체 스타일 (디자인 토큰, 라이트/다크 변수)
@@ -60,9 +61,13 @@ my-blog/
 │   ├── markdown.js     # 마크다운 → HTML 변환기, front matter 파서
 │   └── theme.js        # 다크 모드 토글
 ├── images/             # 글에 쓰는 이미지
-└── posts/
-    ├── index.json      # 글 목록 매니페스트 (slug 배열)
-    └── *.md            # 블로그 글
+├── posts/
+│   ├── index.json      # 글 목록 매니페스트 (slug 배열)
+│   └── *.md            # 블로그 글
+└── apps/               # 웹앱 (앱마다 자체 완결)
+    ├── game-2048/      # 2048 퍼즐
+    └── pixel-art/      # 픽셀 아트 에디터
+        # 각 앱: spec.md, review.md, briefs/(서브에이전트 지침), index.html, style.css, *.js, preview.svg
 ```
 
 구조를 바꾸면 이 섹션도 함께 갱신합니다.

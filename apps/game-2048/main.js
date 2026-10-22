@@ -448,7 +448,8 @@ function init() {
     state.score = saved.score;
     state.won = saved.won;
     state.keepPlaying = saved.keepPlaying;
-    state.over = saved.over;
+    // 저장된 플래그가 판과 어긋나면(손으로 고친 값 등) 판 기준으로 맞춘다. 막힌 판에서 오버레이 없이 멈추지 않게.
+    state.over = !canMove(saved.board);
     if (state.score > state.best) {
       state.best = state.score;
       saveBest();

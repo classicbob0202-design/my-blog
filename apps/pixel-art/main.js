@@ -220,6 +220,15 @@ function resizeCanvas() {
   render();
 }
 
+// 화면 배율만 바뀌면(모니터 이동 등) 크기 변화가 없어 ResizeObserver가 울리지 않으므로 따로 감시한다.
+function watchPixelRatio() {
+  const query = window.matchMedia(`(resolution: ${window.devicePixelRatio || 1}dppx)`);
+  query.addEventListener('change', () => {
+    resizeCanvas();
+    watchPixelRatio();
+  }, { once: true });
+}
+
 // ---------- UI 갱신 ----------
 
 function updateButtons() {
@@ -644,6 +653,7 @@ function init() {
     attributes: true,
     attributeFilter: ['data-theme'],
   });
+  watchPixelRatio();
   resizeCanvas();
 }
 
