@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" role="img" aria-labelledby="preview-title">
+  <title id="preview-title">2048 게임 화면 미리보기</title>
+  <rect width="400" height="400" rx="12" fill="#dfe3e8"/>
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', Pretendard, 'Noto Sans KR', 'Malgun Gothic', sans-serif" font-weight="700" text-anchor="middle">
+    <rect x="12" y="12" width="85" height="85" rx="4" fill="#e0a800"/>
+    <text x="54.5" y="54.5" dy="0.35em" font-size="27" fill="#1f2328">2048</text>
+    <rect x="109" y="12" width="85" height="85" rx="4" fill="#14509e"/>
+    <text x="151.5" y="54.5" dy="0.35em" font-size="34" fill="#ffffff">512</text>
+    <rect x="206" y="12" width="85" height="85" rx="4" fill="#1f6fd1"/>
+    <text x="248.5" y="54.5" dy="0.35em" font-size="34" fill="#ffffff">128</text>
+    <rect x="303" y="12" width="85" height="85" rx="4" fill="#5a97e3"/>
+    <text x="345.5" y="54.5" dy="0.35em" font-size="40" fill="#1f2328">64</text>
+    <rect x="12" y="109" width="85" height="85" rx="4" fill="#e8f1fc"/>
+    <text x="54.5" y="151.5" dy="0.35em" font-size="40" fill="#1f2328">4</text>
+    <rect x="109" y="109" width="85" height="85" rx="4" fill="#7fb0ee"/>
+    <text x="151.5" y="151.5" dy="0.35em" font-size="40" fill="#1f2328">32</text>
+    <rect x="206" y="109" width="85" height="85" rx="4" fill="#a9cbf5"/>
+    <text x="248.5" y="151.5" dy="0.35em" font-size="40" fill="#1f2328">16</text>
+    <rect x="303" y="109" width="85" height="85" rx="4" fill="#cfe2fa"/>
+    <text x="345.5" y="151.5" dy="0.35em" font-size="40" fill="#1f2328">8</text>
+    <rect x="12" y="206" width="85" height="85" rx="4" fill="#eef1f4"/>
+    <rect x="109" y="206" width="85" height="85" rx="4" fill="#ffffff"/>
+    <text x="151.5" y="248.5" dy="0.35em" font-size="40" fill="#1f2328">2</text>
+    <rect x="206" y="206" width="85" height="85" rx="4" fill="#e8f1fc"/>
+    <text x="248.5" y="248.5" dy="0.35em" font-size="40" fill="#1f2328">4</text>
+    <rect x="303" y="206" width="85" height="85" rx="4" fill="#eef1f4"/>
+    <rect x="12" y="303" width="85" height="85" rx="4" fill="#eef1f4"/>
+    <rect x="109" y="303" width="85" height="85" rx="4" fill="#eef1f4"/>
+    <rect x="206" y="303" width="85" height="85" rx="4" fill="#ffffff"/>
+    <text x="248.5" y="345.5" dy="0.35em" font-size="40" fill="#1f2328">2</text>
+    <rect x="303" y="303" width="85" height="85" rx="4" fill="#eef1f4"/>
+  </g>
+</svg>

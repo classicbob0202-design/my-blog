@@ -1,0 +1,442 @@
+/* ---------- 디자인 토큰 (블로그 값 복사 + 앱 전용) ---------- */
+
+:root {
+  color-scheme: light;
+
+  --color-bg: #ffffff;
+  --color-text: #1f2328;
+  --color-muted: #59636e;
+  --color-accent: #0a5fc2;
+  --color-border: #d8dee4;
+
+  --color-surface: #eef1f4;
+  --color-button-bg: #0a5fc2;
+  --color-button-text: #ffffff;
+  --color-checker-a: #ffffff;
+  --color-checker-b: #e3e7ec;
+  --color-grid: rgb(31 35 40 / 0.18);
+  --color-cursor: #0a5fc2;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+
+  --gutter: 16px;
+  --radius: 6px;
+  --tap-size: 44px;
+
+  --checker: conic-gradient(var(--color-checker-a) 25%, var(--color-checker-b) 0 50%, var(--color-checker-a) 0 75%, var(--color-checker-b) 0);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-bg: #16181d;
+  --color-text: #e6e8eb;
+  --color-muted: #9ba4ae;
+  --color-accent: #6cb4ff;
+  --color-border: #30363d;
+
+  --color-surface: #22262e;
+  --color-button-bg: #6cb4ff;
+  --color-button-text: #16181d;
+  --color-checker-a: #2c313a;
+  --color-checker-b: #22262e;
+  --color-grid: rgb(230 232 235 / 0.18);
+  --color-cursor: #6cb4ff;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: 24px;
+  }
+}
+
+/* ---------- 기본 ---------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+@media (min-width: 768px) {
+  body {
+    font-size: 1.125rem;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.page {
+  max-width: 920px;
+  margin-inline: auto;
+  padding: var(--space-5) var(--gutter);
+}
+
+@media (min-width: 768px) {
+  .page {
+    padding-block: var(--space-7);
+  }
+}
+
+/* ---------- 헤더 ---------- */
+
+.app-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.app-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-size);
+  min-width: var(--tap-size);
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--tap-size);
+  height: var(--tap-size);
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.theme-toggle:hover {
+  border-color: var(--color-muted);
+}
+
+.app-title {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.app-intro {
+  margin: 0;
+  color: var(--color-muted);
+}
+
+/* ---------- 에디터 레이아웃 ---------- */
+
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.editor > * {
+  min-width: 0;
+}
+
+@media (min-width: 768px) {
+  .editor {
+    display: grid;
+    grid-template-columns: minmax(0, 512px) minmax(240px, 1fr);
+    gap: var(--space-6);
+    align-items: start;
+  }
+}
+
+.pixel-canvas {
+  display: block;
+  width: 100%;
+  max-width: 512px;
+  aspect-ratio: 1;
+  margin-inline: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  background: var(--color-checker-a);
+  cursor: crosshair;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.canvas-help {
+  margin: var(--space-3) 0 0;
+  color: var(--color-muted);
+  font-size: 0.9375rem;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.panel-section {
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+.panel-title {
+  margin: 0 0 var(--space-2);
+  color: var(--color-muted);
+  font-size: 0.9375rem;
+  line-height: 1.4;
+}
+
+.tool-row,
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.action-row + .action-row,
+.tool-row + .action-row {
+  margin-top: var(--space-3);
+}
+
+/* ---------- 버튼 ---------- */
+
+.tool-button,
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-width: var(--tap-size);
+  min-height: var(--tap-size);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.9375rem;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.tool-button[aria-pressed="true"] {
+  border-color: var(--color-button-bg);
+  background: var(--color-button-bg);
+  color: var(--color-button-text);
+  font-weight: 700;
+}
+
+.button.primary {
+  border-color: var(--color-button-bg);
+  background: var(--color-button-bg);
+  color: var(--color-button-text);
+  font-weight: 700;
+}
+
+.tool-button:hover,
+.button:hover:not(:disabled) {
+  border-color: var(--color-muted);
+}
+
+.button.primary:hover {
+  filter: brightness(1.08);
+}
+
+.button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.tool-button svg,
+.button svg {
+  flex-shrink: 0;
+}
+
+/* ---------- 현재 색 칩 ---------- */
+
+.color-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tap-size);
+  margin: 0 0 0 auto;
+  font-size: 0.9375rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.chip-swatch {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+}
+
+.chip-swatch.is-transparent {
+  background: var(--checker);
+  background-size: 14px 14px;
+}
+
+/* ---------- 팔레트 ---------- */
+
+.palette {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--tap-size), 1fr));
+  gap: 6px;
+}
+
+.swatch {
+  aspect-ratio: 1;
+  min-width: var(--tap-size);
+  min-height: var(--tap-size);
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.swatch[aria-pressed="true"] {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.swatch:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.swatch[aria-pressed="true"]:focus-visible {
+  outline: 3px dashed var(--color-accent);
+  outline-offset: 5px;
+}
+
+.custom-color {
+  grid-column: 1 / -1;
+  justify-self: start;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tap-size);
+  font-size: 0.875rem;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.custom-color input {
+  flex-shrink: 0;
+  width: var(--tap-size);
+  height: var(--tap-size);
+  padding: 2px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--color-bg);
+  cursor: pointer;
+}
+
+.custom-color.is-selected input {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.custom-color input:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.custom-color.is-selected input:focus-visible {
+  outline: 3px dashed var(--color-accent);
+  outline-offset: 5px;
+}
+
+/* ---------- 폼 ---------- */
+
+.check-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: var(--tap-size);
+  min-height: var(--tap-size);
+  padding-inline: var(--space-1) var(--space-2);
+  cursor: pointer;
+}
+
+.check-label input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--color-accent);
+}
+
+.select-label {
+  font-size: 0.9375rem;
+}
+
+.select {
+  min-height: var(--tap-size);
+  min-width: var(--tap-size);
+  max-width: 100%;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.9375rem;
+}

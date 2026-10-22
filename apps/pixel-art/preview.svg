@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" role="img" shape-rendering="crispEdges">
+  <title>픽셀 아트 에디터 미리보기</title>
+  <defs>
+    <pattern id="checker" width="25" height="25" patternUnits="userSpaceOnUse">
+      <rect width="25" height="25" fill="#ffffff"/>
+      <rect x="12.5" width="12.5" height="12.5" fill="#e3e7ec"/>
+      <rect y="12.5" width="12.5" height="12.5" fill="#e3e7ec"/>
+    </pattern>
+  </defs>
+  <rect width="400" height="400" fill="url(#checker)"/>
+  <g fill="#e53935">
+    <rect x="50" y="75" width="25" height="25"/><rect x="75" y="75" width="25" height="25"/><rect x="100" y="75" width="25" height="25"/><rect x="250" y="75" width="25" height="25"/><rect x="275" y="75" width="25" height="25"/><rect x="300" y="75" width="25" height="25"/>
+    <rect x="25" y="100" width="25" height="25"/><rect x="100" y="100" width="25" height="25"/><rect x="125" y="100" width="25" height="25"/><rect x="225" y="100" width="25" height="25"/><rect x="250" y="100" width="25" height="25"/><rect x="275" y="100" width="25" height="25"/>
+    <rect x="300" y="100" width="25" height="25"/><rect x="325" y="100" width="25" height="25"/><rect x="25" y="125" width="25" height="25"/><rect x="75" y="125" width="25" height="25"/><rect x="100" y="125" width="25" height="25"/><rect x="125" y="125" width="25" height="25"/>
+    <rect x="150" y="125" width="25" height="25"/><rect x="200" y="125" width="25" height="25"/><rect x="225" y="125" width="25" height="25"/><rect x="250" y="125" width="25" height="25"/><rect x="275" y="125" width="25" height="25"/><rect x="300" y="125" width="25" height="25"/>
+    <rect x="325" y="125" width="25" height="25"/><rect x="25" y="150" width="25" height="25"/><rect x="50" y="150" width="25" height="25"/><rect x="75" y="150" width="25" height="25"/><rect x="100" y="150" width="25" height="25"/><rect x="125" y="150" width="25" height="25"/>
+    <rect x="150" y="150" width="25" height="25"/><rect x="175" y="150" width="25" height="25"/><rect x="200" y="150" width="25" height="25"/><rect x="225" y="150" width="25" height="25"/><rect x="250" y="150" width="25" height="25"/><rect x="275" y="150" width="25" height="25"/>
+    <rect x="300" y="150" width="25" height="25"/><rect x="325" y="150" width="25" height="25"/><rect x="25" y="175" width="25" height="25"/><rect x="50" y="175" width="25" height="25"/><rect x="75" y="175" width="25" height="25"/><rect x="100" y="175" width="25" height="25"/>
+    <rect x="125" y="175" width="25" height="25"/><rect x="150" y="175" width="25" height="25"/><rect x="175" y="175" width="25" height="25"/><rect x="200" y="175" width="25" height="25"/><rect x="225" y="175" width="25" height="25"/><rect x="250" y="175" width="25" height="25"/>
+    <rect x="275" y="175" width="25" height="25"/><rect x="300" y="175" width="25" height="25"/><rect x="325" y="175" width="25" height="25"/><rect x="50" y="200" width="25" height="25"/><rect x="75" y="200" width="25" height="25"/><rect x="100" y="200" width="25" height="25"/>
+    <rect x="125" y="200" width="25" height="25"/><rect x="150" y="200" width="25" height="25"/><rect x="175" y="200" width="25" height="25"/><rect x="200" y="200" width="25" height="25"/><rect x="225" y="200" width="25" height="25"/><rect x="250" y="200" width="25" height="25"/>
+    <rect x="275" y="200" width="25" height="25"/><rect x="300" y="200" width="25" height="25"/><rect x="75" y="225" width="25" height="25"/><rect x="100" y="225" width="25" height="25"/><rect x="125" y="225" width="25" height="25"/><rect x="150" y="225" width="25" height="25"/>
+    <rect x="175" y="225" width="25" height="25"/><rect x="200" y="225" width="25" height="25"/><rect x="225" y="225" width="25" height="25"/><rect x="250" y="225" width="25" height="25"/><rect x="275" y="225" width="25" height="25"/><rect x="100" y="250" width="25" height="25"/>
+    <rect x="125" y="250" width="25" height="25"/><rect x="150" y="250" width="25" height="25"/><rect x="175" y="250" width="25" height="25"/><rect x="200" y="250" width="25" height="25"/><rect x="225" y="250" width="25" height="25"/><rect x="250" y="250" width="25" height="25"/>
+    <rect x="125" y="275" width="25" height="25"/><rect x="150" y="275" width="25" height="25"/><rect x="175" y="275" width="25" height="25"/><rect x="200" y="275" width="25" height="25"/><rect x="225" y="275" width="25" height="25"/><rect x="150" y="300" width="25" height="25"/>
+    <rect x="175" y="300" width="25" height="25"/><rect x="200" y="300" width="25" height="25"/><rect x="175" y="325" width="25" height="25"/>
+  </g>
+  <g fill="#000000">
+    <rect x="50" y="50" width="25" height="25"/><rect x="75" y="50" width="25" height="25"/><rect x="100" y="50" width="25" height="25"/><rect x="250" y="50" width="25" height="25"/><rect x="275" y="50" width="25" height="25"/><rect x="300" y="50" width="25" height="25"/>
+    <rect x="25" y="75" width="25" height="25"/><rect x="125" y="75" width="25" height="25"/><rect x="225" y="75" width="25" height="25"/><rect x="325" y="75" width="25" height="25"/><rect x="0" y="100" width="25" height="25"/><rect x="150" y="100" width="25" height="25"/>
+    <rect x="200" y="100" width="25" height="25"/><rect x="350" y="100" width="25" height="25"/><rect x="0" y="125" width="25" height="25"/><rect x="175" y="125" width="25" height="25"/><rect x="350" y="125" width="25" height="25"/><rect x="0" y="150" width="25" height="25"/>
+    <rect x="350" y="150" width="25" height="25"/><rect x="0" y="175" width="25" height="25"/><rect x="350" y="175" width="25" height="25"/><rect x="25" y="200" width="25" height="25"/><rect x="325" y="200" width="25" height="25"/><rect x="50" y="225" width="25" height="25"/>
+    <rect x="300" y="225" width="25" height="25"/><rect x="75" y="250" width="25" height="25"/><rect x="275" y="250" width="25" height="25"/><rect x="100" y="275" width="25" height="25"/><rect x="250" y="275" width="25" height="25"/><rect x="125" y="300" width="25" height="25"/>
+    <rect x="225" y="300" width="25" height="25"/><rect x="150" y="325" width="25" height="25"/><rect x="200" y="325" width="25" height="25"/><rect x="175" y="350" width="25" height="25"/>
+  </g>
+  <g fill="#ffffff">
+    <rect x="50" y="100" width="25" height="25"/><rect x="75" y="100" width="25" height="25"/><rect x="50" y="125" width="25" height="25"/>
+  </g>
+  <path fill="none" stroke="#1f2328" stroke-opacity="0.18" stroke-width="1" d="M25 0V400M0 25H400M50 0V400M0 50H400M75 0V400M0 75H400M100 0V400M0 100H400M125 0V400M0 125H400M150 0V400M0 150H400M175 0V400M0 175H400M200 0V400M0 200H400M225 0V400M0 225H400M250 0V400M0 250H400M275 0V400M0 275H400M300 0V400M0 300H400M325 0V400M0 325H400M350 0V400M0 350H400M375 0V400M0 375H400"/>
+  <rect x="0.5" y="0.5" width="399" height="399" fill="none" stroke="#d8dee4" stroke-width="1"/>
+</svg>

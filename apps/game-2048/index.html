@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <script>
+    (function () {
+      var theme;
+      try {
+        theme = localStorage.getItem('theme');
+      } catch (e) {}
+      if (theme !== 'light' && theme !== 'dark') {
+        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="같은 숫자를 밀어 합쳐 2048을 만드는 퍼즐 게임">
+  <title>2048 · 내 블로그</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="main.js"></script>
+</head>
+<body>
+  <div class="page">
+    <header class="game-header">
+      <nav class="game-nav">
+        <a class="back-link" href="../../">← 블로그로</a>
+        <button class="theme-toggle" type="button" aria-label="다크 모드" aria-pressed="false" title="다크 모드 전환">
+          <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20">
+            <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
+            <path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/>
+          </svg>
+        </button>
+      </nav>
+
+      <div class="header-row">
+        <h1 class="game-title">2048</h1>
+        <div class="scores">
+          <div class="score-box">
+            <span class="score-label">점수</span>
+            <span class="score-value" id="score">0</span>
+            <span class="score-add" aria-hidden="true"></span>
+          </div>
+          <div class="score-box">
+            <span class="score-label">최고</span>
+            <span class="score-value" id="best">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-row">
+        <p class="game-intro">같은 숫자를 합쳐 2048을 만들어 보세요.</p>
+        <button type="button" class="button new-game">새 게임</button>
+      </div>
+    </header>
+
+    <main>
+      <div class="board" id="board" role="group" aria-label="2048 게임판" aria-describedby="game-help" tabindex="-1">
+        <div class="grid" aria-hidden="true">
+          <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+          <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+          <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+          <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+        </div>
+        <div class="tile-layer"></div>
+        <div class="overlay" role="dialog" aria-modal="true" aria-labelledby="overlay-title" hidden>
+          <h2 class="overlay-title" id="overlay-title"></h2>
+          <p class="overlay-text"></p>
+          <div class="overlay-actions"></div>
+        </div>
+      </div>
+
+      <p class="game-help" id="game-help">방향키 또는 WASD로 타일을 움직이세요. 모바일에서는 판을 스와이프하세요.</p>
+      <p class="sr-only" id="announcer" aria-live="polite"></p>
+    </main>
+  </div>
+</body>
+</html>

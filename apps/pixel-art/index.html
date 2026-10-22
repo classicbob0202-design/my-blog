@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <script>
+    (function () {
+      var theme;
+      try {
+        theme = localStorage.getItem('theme');
+      } catch (e) {}
+      if (theme !== 'light' && theme !== 'dark') {
+        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="16×16 격자에 도트를 찍어 그리고 PNG로 저장하는 픽셀 아트 에디터">
+  <title>픽셀 아트 · 내 블로그</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="main.js"></script>
+</head>
+<body>
+  <div class="page">
+    <header class="app-header">
+      <nav class="app-nav">
+        <a class="back-link" href="../../">← 블로그로</a>
+        <button class="theme-toggle" type="button" aria-label="다크 모드" aria-pressed="false" title="다크 모드 전환">
+          <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20">
+            <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
+            <path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/>
+          </svg>
+        </button>
+      </nav>
+      <h1 class="app-title">픽셀 아트</h1>
+      <p class="app-intro">16×16 칸에 도트를 찍어 그림을 그려 보세요.</p>
+    </header>
+
+    <main class="editor">
+      <div class="canvas-area">
+        <canvas id="canvas" class="pixel-canvas" tabindex="0" role="application" aria-roledescription="픽셀 그림판" aria-label="16×16 그림판" aria-describedby="canvas-help"></canvas>
+        <p class="canvas-help" id="canvas-help">칸을 누르거나 드래그해서 칠하세요. 키보드: 방향키로 이동, Space로 칠하기, Shift+방향키로 이어 칠하기.</p>
+      </div>
+
+      <div class="panel">
+        <section class="panel-section" aria-labelledby="tools-title">
+          <h2 class="panel-title" id="tools-title">도구</h2>
+          <div class="tool-row" role="group" aria-label="도구">
+            <button type="button" class="tool-button" data-tool="pen" aria-pressed="true" title="펜 (B)">
+              <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+                <path d="M4 20l1-5L16 4l4 4L9 19z"/>
+                <path d="M13.5 6.5l4 4"/>
+              </svg>
+              <span>펜</span>
+            </button>
+            <button type="button" class="tool-button" data-tool="eraser" aria-pressed="false" title="지우개 (E)">
+              <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+                <path d="M8 20l-5-5L14 4l7 7-9 9z"/>
+                <path d="M8 20h13"/>
+                <path d="M9 9l6 6"/>
+              </svg>
+              <span>지우개</span>
+            </button>
+            <button type="button" class="tool-button" data-tool="fill" aria-pressed="false" title="채우기 (G)">
+              <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+                <path d="M11 3L3 11l7 7 8-8z"/>
+                <path d="M3 11h15"/>
+                <path d="M20 14c0 0 2 2.5 2 4a2 2 0 0 1-4 0c0-1.5 2-4 2-4z" fill="currentColor"/>
+              </svg>
+              <span>채우기</span>
+            </button>
+            <button type="button" class="tool-button" data-tool="picker" aria-pressed="false" title="스포이드 (I)">
+              <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+                <path d="M14 6l4 4"/>
+                <path d="M16 4a2.8 2.8 0 0 1 4 4l-2 2-4-4z" fill="currentColor"/>
+                <path d="M15 9L6 18l-3 3"/>
+                <path d="M12 6l6 6"/>
+              </svg>
+              <span>스포이드</span>
+            </button>
+          </div>
+          <div class="action-row">
+            <button type="button" class="button secondary" id="undo" disabled title="되돌리기 (Ctrl+Z)">
+              <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 14L4 9l5-5"/>
+                <path d="M4 9h11a5 5 0 0 1 0 10h-3"/>
+              </svg>
+              <span>되돌리기</span>
+            </button>
+            <button type="button" class="button secondary" id="redo" disabled title="다시하기 (Ctrl+Shift+Z)">
+              <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 14l5-5-5-5"/>
+                <path d="M20 9H9a5 5 0 0 0 0 10h3"/>
+              </svg>
+              <span>다시하기</span>
+            </button>
+            <p class="color-chip">
+              <span class="chip-swatch" id="chip-swatch" aria-hidden="true"></span>
+              <span><span class="sr-only">현재 색: </span><span id="chip-label">검정</span></span>
+            </p>
+          </div>
+        </section>
+
+        <section class="panel-section" aria-labelledby="palette-title">
+          <h2 class="panel-title" id="palette-title">팔레트</h2>
+          <div class="palette" id="palette" role="group" aria-label="팔레트">
+            <label class="custom-color" id="custom-color-label">
+              <input type="color" id="custom-color" value="#00aaff">
+              <span>사용자 색</span>
+            </label>
+          </div>
+        </section>
+
+        <section class="panel-section" aria-labelledby="canvas-options-title">
+          <h2 class="panel-title" id="canvas-options-title">그림</h2>
+          <div class="action-row">
+            <label class="check-label">
+              <input type="checkbox" id="show-grid" checked>
+              <span>격자선</span>
+            </label>
+            <button type="button" class="button secondary" id="clear" disabled>전체 지우기</button>
+          </div>
+        </section>
+
+        <section class="panel-section" aria-labelledby="export-title">
+          <h2 class="panel-title" id="export-title">저장</h2>
+          <div class="action-row">
+            <label class="select-label" for="export-scale">크기</label>
+            <select id="export-scale" class="select">
+              <option value="1">16×16px (원본)</option>
+              <option value="8">128×128px</option>
+              <option value="16" selected>256×256px</option>
+              <option value="32">512×512px</option>
+            </select>
+            <button type="button" class="button primary" id="save-png">PNG로 저장</button>
+          </div>
+        </section>
+      </div>
+
+      <p class="sr-only" id="announcer" aria-live="polite"></p>
+    </main>
+  </div>
+</body>
+</html>
