@@ -56,7 +56,7 @@
     </header>
 
     <main>
-      <div class="board" id="board" role="group" aria-label="2048 게임판" aria-describedby="game-help" tabindex="-1">
+      <div class="board" id="board" role="group" aria-label="2048 게임판" aria-describedby="game-help board-state" tabindex="-1">
         <div class="grid" aria-hidden="true">
           <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
           <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
@@ -72,6 +72,7 @@
       </div>
 
       <p class="game-help" id="game-help">방향키 또는 WASD로 타일을 움직이세요. 모바일에서는 판을 스와이프하세요.</p>
+      <p class="sr-only" id="board-state"></p>
       <p class="sr-only" id="announcer" aria-live="polite"></p>
     </main>
   </div>

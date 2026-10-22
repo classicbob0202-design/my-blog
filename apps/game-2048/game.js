@@ -151,8 +151,15 @@ function isTileValue(value) {
   if (value === 0) {
     return true;
   }
-  // 2 이상인 2의 거듭제곱 정수
-  return Number.isSafeInteger(value) && value >= 2 && Number.isInteger(Math.log2(value));
+  // 2 이상인 2의 거듭제곱 정수. Math.log2는 큰 홀수를 반올림해 통과시키므로 나눠서 확인한다.
+  if (!Number.isSafeInteger(value) || value < 2) {
+    return false;
+  }
+  let rest = value;
+  while (rest % 2 === 0) {
+    rest /= 2;
+  }
+  return rest === 1;
 }
 
 export function isValidBoard(board) {

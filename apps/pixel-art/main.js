@@ -116,6 +116,24 @@ function scheduleSave() {
   saveTimer = setTimeout(saveNow, SAVE_DELAY);
 }
 
+// 아무것도 안 바꾼 탭이 닫히면서 다른 탭의 최신 그림을 덮어쓰지 않게, 대기 중인 저장만 처리한다.
+function flushSave() {
+  if (saveTimer) {
+    saveNow();
+  }
+}
+
+// 다른 탭이 저장하면, 이 탭에 저장 안 된 변경이 없을 때만 따라간다.
+function onStorage(event) {
+  if (event.key !== STORAGE_KEY || event.newValue === null || saveTimer || state.stroke) {
+    return;
+  }
+  loadState();
+  state.history = createHistory();
+  updateAll();
+  scheduleRender();
+}
+
 // ---------- 알림 ----------
 
 function announce(message) {
@@ -453,6 +471,10 @@ function onPointerEnd(event) {
   if (!stroke || event.pointerId !== stroke.pointerId) {
     return;
   }
+  // pointerup 좌표가 마지막 move와 다를 수 있으니 끝 위치까지 이어 칠한다. cancel 좌표는 믿지 않는다.
+  if (event.type === 'pointerup') {
+    onPointerMove(event);
+  }
   state.stroke = null;
   const changed = state.grid !== stroke.before;
   if (changed) {
@@ -646,7 +668,8 @@ function init() {
   canvas.addEventListener('blur', scheduleRender);
   document.addEventListener('keydown', onDocumentKeyDown);
 
-  window.addEventListener('pagehide', saveNow);
+  window.addEventListener('pagehide', flushSave);
+  window.addEventListener('storage', onStorage);
 
   new ResizeObserver(resizeCanvas).observe(canvas);
   new MutationObserver(scheduleRender).observe(document.documentElement, {

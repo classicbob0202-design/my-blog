@@ -39,6 +39,7 @@ const els = {
   overlayText: document.querySelector('.overlay-text'),
   overlayActions: document.querySelector('.overlay-actions'),
   announcer: document.getElementById('announcer'),
+  boardState: document.getElementById('board-state'),
 };
 
 const state = {
@@ -67,7 +68,9 @@ function formatNumber(value) {
 function loadBest() {
   try {
     const raw = localStorage.getItem(BEST_KEY);
-    return raw !== null && /^\d+$/.test(raw) ? Number(raw) : 0;
+    const value = raw !== null && /^\d+$/.test(raw) ? Number(raw) : 0;
+    // 아주 긴 숫자는 Infinity가 되어 기록을 영영 못 깨므로 버린다.
+    return Number.isSafeInteger(value) ? value : 0;
   } catch {
     return 0;
   }
@@ -81,7 +84,17 @@ function saveBest() {
   }
 }
 
+// 타일은 aria-hidden이므로, 스크린 리더가 원할 때 읽을 수 있게 판 배치를 글로 둔다(라이브 영역 아님).
+function describeBoard() {
+  const rows = state.board.map((row, index) => {
+    const cells = row.map((value) => (value === 0 ? '빈칸' : String(value)));
+    return `${index + 1}행: ${cells.join(', ')}`;
+  });
+  els.boardState.textContent = `현재 판. ${rows.join('. ')}.`;
+}
+
 function saveState() {
+  describeBoard();
   const data = {
     board: state.board,
     score: state.score,
@@ -456,6 +469,7 @@ function init() {
     }
     renderAll();
     renderScores();
+    describeBoard();
     if (state.won && !state.keepPlaying) {
       openOverlay('win');
     } else if (state.over) {

@@ -328,8 +328,9 @@ function parseInline(text) {
   s = s.replace(/\\\n/g, () => stash('<br>\n'));
   s = s.replace(/\\([\\`*_{}[\]()#+\-.!~|])/g, (_, ch) => stash(ch));
 
+  // 주소 안의 짝 맞는 괄호 한 단계는 허용한다(예: https://ko.wikipedia.org/wiki/A_(B)).
   s = s.replace(
-    /!\[([^\]]*)\]\(\s*([^\s)]+)(?:\s+&quot;(.*?)&quot;)?\s*\)/g,
+    /!\[([^\]]*)\]\(\s*((?:[^\s()]|\([^\s()]*\))+)(?:\s+&quot;(.*?)&quot;)?\s*\)/g,
     (_, alt, src, title) => {
       const url = safeUrl(plain(src));
       if (!url) {
@@ -341,7 +342,7 @@ function parseInline(text) {
   );
 
   s = s.replace(
-    /\[([^\]]+)\]\(\s*([^\s)]+)(?:\s+&quot;(.*?)&quot;)?\s*\)/g,
+    /\[([^\]]+)\]\(\s*((?:[^\s()]|\([^\s()]*\))+)(?:\s+&quot;(.*?)&quot;)?\s*\)/g,
     (_, label, href, title) => {
       const url = safeUrl(plain(href));
       if (!url) {
