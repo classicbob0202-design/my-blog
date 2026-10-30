@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400" role="img">
+  <title>2048 게임 화면 미리보기</title>
+  <rect width="400" height="400" rx="16" fill="#dfe4ea"/>
+  <rect x="12" y="12" width="85" height="85" rx="6" fill="#ffffff"/>
+  <text x="54.5" y="54.5" fill="#1a1a1a" font-size="40" font-weight="700" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" text-anchor="middle" dominant-baseline="central">2</text>
+  <rect x="109" y="12" width="85" height="85" rx="6" fill="#eaf1fe"/>
+  <text x="151.5" y="54.5" fill="#1a1a1a" font-size="40" font-weight="700" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" text-anchor="middle" dominant-baseline="central">4</text>
+  <rect x="206" y="12" width="85" height="85" rx="6" fill="#d3e2fd"/>
+  <text x="248.5" y="54.5" fill="#1a1a1a" font-size="40" font-weight="700" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" text-anchor="middle" dominant-baseline="central">8</text>
+  <rect x="303" y="12" width="85" height="85" rx="6" fill="#eef1f5"/>
+  <rect x="12" y="109" width="85" height="85" rx="6" fill="#b0cbfb"/>
+  <text x="54.5" y="151.5" fill="#1a1a1a" font-size="40" font-weight="700" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" text-anchor="middle" dominant-baseline="central">16</text>
+  <rect x="109" y="109" width="85" height="85" rx="6" fill="#86aef8"/>
+  <text x="151.5" y="151.5" fill="#1a1a1a" font-size="40" font-weight="700" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" text-anchor="middle" dominant-baseline="central">32</text>
+  <rect x="206" y="109" width="85" height="85" rx="6" fill="#5b8ff3"/>
+  <text x="248.5" y="151.5" fill="#1a1a1a" font-size="40" font-weight="700" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" text-anchor="middle" dominant-baseline="central">64</text>
+  <rect x="303" y="109" width="85" height="85" rx="6" fill="#eef1f5"/>
+  <rect x="12" y="206" width="85" height="85" rx="6" fill="#2563eb"/>
+  <text x="54.5" y="248.5" fill="#ffffff" font-size="34" font-weight="700" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" text-anchor="middle" dominant-baseline="central">128</text>
+  <rect x="109" y="206" width="85" height="85" rx="6" fill="#1d4fc4"/>
+  <text x="151.5" y="248.5" fill="#ffffff" font-size="34" font-weight="700" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" text-anchor="middle" dominant-baseline="central">256</text>
+  <rect x="206" y="206" width="85" height="85" rx="6" fill="#1a43a3"/>
+  <text x="248.5" y="248.5" fill="#ffffff" font-size="34" font-weight="700" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" text-anchor="middle" dominant-baseline="central">512</text>
+  <rect x="303" y="206" width="85" height="85" rx="6" fill="#ffffff"/>
+  <text x="345.5" y="248.5" fill="#1a1a1a" font-size="40" font-weight="700" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" text-anchor="middle" dominant-baseline="central">2</text>
+  <rect x="12" y="303" width="85" height="85" rx="6" fill="#f5b301"/>
+  <text x="54.5" y="345.5" fill="#1a1a1a" font-size="27" font-weight="700" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" text-anchor="middle" dominant-baseline="central">2048</text>
+  <rect x="109" y="303" width="85" height="85" rx="6" fill="#163782"/>
+  <text x="151.5" y="345.5" fill="#ffffff" font-size="27" font-weight="700" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" text-anchor="middle" dominant-baseline="central">1024</text>
+  <rect x="206" y="303" width="85" height="85" rx="6" fill="#eef1f5"/>
+  <rect x="303" y="303" width="85" height="85" rx="6" fill="#eaf1fe"/>
+  <text x="345.5" y="345.5" fill="#1a1a1a" font-size="40" font-weight="700" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" text-anchor="middle" dominant-baseline="central">4</text>
+</svg>

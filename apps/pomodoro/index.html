@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ko" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>25:00 집중 - 뽀모도로</title>
+  <meta name="description" content="집중과 휴식을 번갈아 재는 뽀모도로 타이머">
+  <script>
+    // 깜빡임(FOUC) 방지: 저장된 선택 → 시스템 설정 순서로 테마를 정한다.
+    (() => {
+      let theme = null;
+      try {
+        theme = localStorage.getItem('theme');
+      } catch (error) {
+        theme = null;
+      }
+      if (theme !== 'light' && theme !== 'dark') {
+        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.dataset.theme = theme;
+    })();
+  </script>
+  <link rel="stylesheet" href="style.css">
+  <script src="theme.js" defer></script>
+  <script type="module" src="main.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <a class="app-header__back" href="../../">← 블로그로</a>
+    <h1 class="app-header__title">뽀모도로 타이머</h1>
+    <button class="theme-toggle" type="button" aria-label="다크 모드로 전환">🌙</button>
+  </header>
+
+  <main class="app">
+    <section class="timer timer--focus" aria-labelledby="timer-phase">
+      <p class="timer__phase" id="timer-phase">집중</p>
+      <div class="timer__dial">
+        <svg class="timer__ring" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+          <circle class="timer__ring-track" cx="50" cy="50" r="45"></circle>
+          <circle class="timer__ring-progress" cx="50" cy="50" r="45"></circle>
+        </svg>
+        <p class="timer__time">25:00</p>
+      </div>
+      <p class="timer__set">이번 세트 <span class="timer__set-count">0</span> / <span class="timer__set-total">4</span></p>
+      <div class="timer__dots" aria-hidden="true"></div>
+      <div class="timer__controls">
+        <button class="button button--primary" type="button" data-action="toggle">시작</button>
+        <button class="button" type="button" data-action="reset">초기화</button>
+        <button class="button" type="button" data-action="skip">건너뛰기</button>
+      </div>
+      <p class="timer__message"></p>
+      <p class="visually-hidden" aria-live="polite" data-role="announcer"></p>
+    </section>
+
+    <aside class="side">
+      <section class="today" aria-labelledby="today-title">
+        <h2 class="today__title" id="today-title">오늘 완료한 집중</h2>
+        <p class="today__count"><span class="today__number">0</span>회</p>
+      </section>
+
+      <details class="settings">
+        <summary class="settings__summary">설정</summary>
+        <form class="settings__form" novalidate>
+          <div class="settings__field">
+            <label class="settings__label" for="focus-min">집중 (분, 1~90)</label>
+            <input class="settings__input" id="focus-min" name="focusMin" type="number"
+                   inputmode="numeric" min="1" max="90" step="1" aria-describedby="focus-min-error">
+            <p class="settings__error" id="focus-min-error"></p>
+          </div>
+          <div class="settings__field">
+            <label class="settings__label" for="short-min">짧은 휴식 (분, 1~30)</label>
+            <input class="settings__input" id="short-min" name="shortMin" type="number"
+                   inputmode="numeric" min="1" max="30" step="1" aria-describedby="short-min-error">
+            <p class="settings__error" id="short-min-error"></p>
+          </div>
+          <div class="settings__field">
+            <label class="settings__label" for="long-min">긴 휴식 (분, 1~60)</label>
+            <input class="settings__input" id="long-min" name="longMin" type="number"
+                   inputmode="numeric" min="1" max="60" step="1" aria-describedby="long-min-error">
+            <p class="settings__error" id="long-min-error"></p>
+          </div>
+          <div class="settings__field">
+            <label class="settings__label" for="long-every">긴 휴식까지 집중 횟수 (2~8)</label>
+            <input class="settings__input" id="long-every" name="longEvery" type="number"
+                   inputmode="numeric" min="2" max="8" step="1" aria-describedby="long-every-error">
+            <p class="settings__error" id="long-every-error"></p>
+          </div>
+          <label class="settings__check"><input class="settings__checkbox" type="checkbox" name="autoStart"> 다음 단계 자동 시작</label>
+          <label class="settings__check"><input class="settings__checkbox" type="checkbox" name="sound"> 끝날 때 소리 내기</label>
+          <label class="settings__check"><input class="settings__checkbox" type="checkbox" name="notify"> 브라우저 알림 받기</label>
+          <p class="settings__note"></p>
+          <button class="button button--primary" type="submit">설정 저장</button>
+          <p class="settings__status" aria-live="polite"></p>
+        </form>
+      </details>
+    </aside>
+
+    <section class="help" aria-labelledby="help-title">
+      <h2 class="help__title" id="help-title">사용법</h2>
+      <h3 class="help__subtitle">조작</h3>
+      <ul class="help__list">
+        <li class="help__item">시작을 누르면 집중 <span class="help__value" data-help="focusMin">25</span>분이 시작됩니다. 진행 중에 다시 누르면 일시정지, 한 번 더 누르면 이어서 진행합니다.</li>
+        <li class="help__item">초기화는 지금 단계를 처음 시간으로 되돌립니다. 건너뛰기는 지금 단계를 끝내지 않고 다음 단계로 넘어가며, 완료 횟수에 세지 않습니다.</li>
+        <li class="help__item">집중을 <span class="help__value" data-help="longEvery">4</span>번 마치면 긴 휴식(<span class="help__value" data-help="longMin">15</span>분)이, 그 밖에는 짧은 휴식(<span class="help__value" data-help="shortMin">5</span>분)이 이어집니다.</li>
+        <li class="help__item">시간은 아래 "설정"에서 분 단위로 바꿀 수 있습니다.</li>
+      </ul>
+      <h3 class="help__subtitle">단축키</h3>
+      <ul class="help__list">
+        <li class="help__item">Space: 시작 / 일시정지</li>
+        <li class="help__item">R: 초기화</li>
+        <li class="help__item">S: 건너뛰기</li>
+        <li class="help__item">글자 입력칸이나 버튼에 포커스가 있을 때는 단축키가 동작하지 않습니다.</li>
+      </ul>
+      <h3 class="help__subtitle">저장</h3>
+      <ul class="help__list">
+        <li class="help__item">설정, 오늘 완료한 집중 횟수, 진행 중인 타이머는 이 브라우저에만 저장됩니다(localStorage). 서버로 보내지 않습니다.</li>
+        <li class="help__item">새로고침하거나 탭을 닫았다 열어도 타이머는 이어서 진행됩니다.</li>
+        <li class="help__item">오늘 완료 횟수는 날짜가 바뀌면 0부터 다시 셉니다.</li>
+        <li class="help__item">시크릿 창이나 저장이 막힌 브라우저에서는 저장되지 않을 수 있습니다.</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

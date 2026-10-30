@@ -175,6 +175,82 @@ body {
   margin-top: var(--space-md);
 }
 
+/* 웹앱 섹션 (index.html 글 목록 아래, 정적 HTML) */
+.app-section {
+  margin-top: var(--space-xl);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--border);
+}
+
+.app-section__title {
+  margin-bottom: var(--space-md);
+  font-size: var(--font-size-lg);
+}
+
+.app-list {
+  display: grid;
+  gap: var(--space-md);
+}
+
+/* 카드 전체가 눌리도록 제목 링크의 ::after가 카드를 덮는다 */
+.app-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: var(--space-md);
+  align-items: center;
+  padding: var(--space-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--card-bg);
+}
+
+.app-card:hover {
+  border-color: var(--accent);
+}
+
+.app-card:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.app-card__image {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: var(--radius);
+}
+
+.app-card__title {
+  font-size: var(--font-size-base);
+  line-height: 1.4;
+}
+
+.app-card__link {
+  text-decoration: none;
+}
+
+.app-card__link:focus-visible {
+  outline: none;
+}
+
+.app-card__link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius);
+}
+
+.app-card__link:hover {
+  color: var(--accent);
+}
+
+.app-card__desc {
+  margin-top: var(--space-xs);
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
 /* 글 상세 */
 .post-detail__header {
   margin-bottom: var(--space-xl);
@@ -370,6 +446,10 @@ body {
 
   .post-card {
     padding: var(--space-lg);
+  }
+
+  .app-list {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>
+    // 깜빡임(FOUC) 방지: 저장된 선택 → 시스템 설정 순서로 테마를 정한다.
+    (() => {
+      let theme = null;
+      try {
+        theme = localStorage.getItem('theme');
+      } catch (error) {
+        theme = null;
+      }
+      if (theme !== 'light' && theme !== 'dark') {
+        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.dataset.theme = theme;
+    })();
+  </script>
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="같은 숫자를 밀어 합쳐 2048을 만드는 퍼즐 게임">
+  <title>2048 · My Blog</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="theme.js" defer></script>
+  <script type="module" src="main.js"></script>
+</head>
+<body>
+  <header class="top-bar">
+    <div class="top-bar__inner">
+      <a class="top-bar__back" href="../../">← 블로그로</a>
+      <button class="theme-toggle" type="button" aria-label="다크 모드로 전환">🌙</button>
+    </div>
+  </header>
+
+  <main class="game-page">
+    <div class="game-page__play">
+      <div class="game-header">
+        <h1 class="game-header__title">2048</h1>
+        <div class="score-board">
+          <div class="score-box score-box--current">
+            <span class="score-box__label">점수</span>
+            <span class="score-box__value" id="score-value">0</span>
+            <span class="score-box__gain" aria-hidden="true"></span>
+          </div>
+          <div class="score-box score-box--best">
+            <span class="score-box__label">최고</span>
+            <span class="score-box__value" id="best-value">0</span>
+          </div>
+        </div>
+        <p class="game-header__intro">같은 숫자를 밀어 합쳐 2048을 만들어 보세요.</p>
+        <div class="game-header__actions">
+          <button class="button button--primary" type="button" id="new-game">새 게임</button>
+          <button class="button button--secondary" type="button" id="read-board">판 읽기</button>
+        </div>
+      </div>
+
+      <div class="game-board" id="game-board" role="group" aria-label="2048 게임판"
+           aria-describedby="game-board-desc" tabindex="-1">
+        <div class="game-board__grid" aria-hidden="true">
+          <div class="game-board__cell"></div>
+          <div class="game-board__cell"></div>
+          <div class="game-board__cell"></div>
+          <div class="game-board__cell"></div>
+          <div class="game-board__cell"></div>
+          <div class="game-board__cell"></div>
+          <div class="game-board__cell"></div>
+          <div class="game-board__cell"></div>
+          <div class="game-board__cell"></div>
+          <div class="game-board__cell"></div>
+          <div class="game-board__cell"></div>
+          <div class="game-board__cell"></div>
+          <div class="game-board__cell"></div>
+          <div class="game-board__cell"></div>
+          <div class="game-board__cell"></div>
+          <div class="game-board__cell"></div>
+        </div>
+        <div class="game-board__tiles" aria-hidden="true"></div>
+        <div class="game-message" role="dialog" aria-modal="true"
+             aria-labelledby="game-message-title" aria-describedby="game-message-text" hidden>
+          <h2 class="game-message__title" id="game-message-title"></h2>
+          <p class="game-message__text" id="game-message-text"></p>
+          <div class="game-message__actions"></div>
+        </div>
+      </div>
+      <p class="visually-hidden" id="game-board-desc">방향키나 W·A·S·D, 스와이프로 타일을 움직여요. 판 상태는 '판 읽기' 버튼으로 들을 수 있어요.</p>
+    </div>
+
+    <aside class="game-page__side">
+      <section class="records" aria-labelledby="records-title">
+        <div class="records__head">
+          <h2 class="records__title" id="records-title">기록판</h2>
+          <button class="button button--text records__reset" type="button">기록 지우기</button>
+        </div>
+        <ol class="records__list"></ol>
+        <p class="records__empty">아직 기록이 없어요. 첫 판을 끝내 보세요!</p>
+      </section>
+
+      <section class="help" aria-labelledby="help-title">
+        <h2 class="help__title" id="help-title">사용법</h2>
+        <ul class="help__list">
+          <li class="help__item">방향키(← ↑ → ↓)나 W·A·S·D를 누르면 모든 타일이 그쪽으로 밀려요.</li>
+          <li class="help__item">휴대폰에서는 게임판을 손가락으로 쓸어(스와이프) 움직여요.</li>
+          <li class="help__item">같은 숫자 두 개가 부딪히면 하나로 합쳐지고, 합쳐진 숫자만큼 점수가 올라요.</li>
+          <li class="help__item">2048 타일을 만들면 승리! 계속하기를 눌러 더 높은 점수에 도전할 수 있어요.</li>
+          <li class="help__item">진행 중인 판, 최고 점수, 기록판은 이 브라우저에 자동으로 저장돼요. 새로고침하거나 다시 들어와도 이어서 할 수 있어요.</li>
+          <li class="help__item">게임이 끝나거나 진행 중에 새 게임을 누르면 점수가 기록판에 남아요(상위 10개).</li>
+          <li class="help__item">다른 브라우저·기기, 시크릿 창과는 저장이 공유되지 않아요.</li>
+          <li class="help__item">화면 낭독기를 쓴다면 '판 읽기' 버튼으로 지금 판 상태를 들을 수 있어요.</li>
+        </ul>
+      </section>
+    </aside>
+  </main>
+
+  <p class="visually-hidden" id="announcer" aria-live="polite"></p>
+</body>
+</html>
