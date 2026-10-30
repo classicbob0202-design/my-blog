@@ -239,8 +239,20 @@ const render = () => {
 };
 
 // 조작 --------------------------------------------------------------------
+// 화면 갱신(250ms) 전에 종료 시각이 지났을 수 있으니, 조작 전에 같은 시각으로 완료부터 처리한다.
+// 완료가 있었으면 true: 사용자는 끝난 단계를 누른 것이라 이번 누름은 완료 처리로 끝낸다.
+const settle = (now) => {
+  const result = tick(state, settings, now);
+  if (result.events.length === 0) return false;
+  state = result.state;
+  handleEvents(result.events, now, false);
+  render();
+  return true;
+};
+
 const doToggle = () => {
   const now = Date.now();
+  if (settle(now)) return;
   const before = state.status;
   if (before !== 'running') ensureAudio();
   state = toggle(state, now);
@@ -258,6 +270,7 @@ const doToggle = () => {
 };
 
 const doReset = () => {
+  settle(Date.now());
   state = reset(state, settings);
   saveSession();
   el.message.textContent = '';
@@ -266,6 +279,7 @@ const doReset = () => {
 };
 
 const doSkip = () => {
+  if (settle(Date.now())) return;
   state = skip(state, settings);
   saveSession();
   el.message.textContent = '';

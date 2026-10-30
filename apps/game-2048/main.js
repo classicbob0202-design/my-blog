@@ -92,8 +92,15 @@ const saveState = () => {
   writeItem(KEYS.state, serializeGame(state));
 };
 
+// 다른 탭이 더 높은 최고 점수를 저장했을 수 있으니, 저장 직전에 다시 읽어 큰 값을 남긴다.
 const saveBest = () => {
+  state.best = Math.max(state.best, parseBest(readItem(KEYS.best)));
   writeItem(KEYS.best, String(state.best));
+};
+
+// 다른 탭이 남긴 기록을 지우지 않게, 기록을 더하기 직전에 저장된 최신 목록을 다시 읽는다.
+const refreshRecords = () => {
+  state.records = parseRecords(readItem(KEYS.records));
 };
 
 const saveRecords = () => {
@@ -263,6 +270,7 @@ const renderRecords = () => {
 // 지금 판을 기록판에 남긴다. 기록판 순위(없으면 null)를 돌려준다.
 const recordGame = (ended) => {
   if (state.score <= 0) return null;
+  refreshRecords();
   const existed = state.records.some((record) => record.id === state.id);
   const { records, rank } = addRecord(state.records, {
     id: state.id,
@@ -518,6 +526,18 @@ els.readBoard.addEventListener('click', () => {
 });
 
 els.recordsReset.addEventListener('click', resetRecords);
+
+// 다른 탭에서 최고 점수·기록판이 바뀌면 이 탭의 화면과 메모리도 맞춘다.
+window.addEventListener('storage', (event) => {
+  if (event.key === KEYS.best || event.key === null) {
+    state.best = Math.max(state.score, parseBest(readItem(KEYS.best)));
+    renderScores();
+  }
+  if (event.key === KEYS.records || event.key === null) {
+    refreshRecords();
+    renderRecords();
+  }
+});
 
 /* ---------- 시작 ---------- */
 

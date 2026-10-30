@@ -21,7 +21,10 @@ const HTML_ESCAPES = {
 export const escapeHtml = (text) => String(text).replace(/[&<>"']/g, (char) => HTML_ESCAPES[char]);
 
 // javascript: 같은 위험한 주소를 막는다. 스킴이 없으면(상대 경로) 허용한다.
+// 브라우저는 주소 앞의 제어문자를 지운 뒤 해석하므로 제어문자가 있으면 거부한다.
+// \u0000은 떼어 둔 HTML 토큰 표시라, 주소 안에 있으면 HTML이 속성에 들어가므로 거부한다.
 const isSafeUrl = (url) => {
+  if (/[\u0000-\u001f\u007f]/.test(url)) return false;
   const scheme = url.match(/^([a-z][a-z0-9+.-]*):/i);
   if (!scheme) return true;
   return ['http', 'https'].includes(scheme[1].toLowerCase());
@@ -41,7 +44,10 @@ const inline = (text) => {
   let result = String(text).replace(/\u0000/g, '');
   result = result.replace(/`([^`]+)`/g, (_, code) => stash(`<code>${escapeHtml(code)}</code>`));
   result = result.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, (match, alt, url) =>
-    isSafeUrl(url) ? stash(`<img src="${escapeHtml(url)}" alt="${escapeHtml(alt)}" loading="lazy">`) : match,
+    // alt는 속성이라 떼어 둔 HTML 토큰(인라인 코드)을 되돌리지 않고 지운다.
+    isSafeUrl(url)
+      ? stash(`<img src="${escapeHtml(url)}" alt="${escapeHtml(alt.replace(/\u0000\d+\u0000/g, ''))}" loading="lazy">`)
+      : match,
   );
   result = result.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (match, label, url) =>
     isSafeUrl(url) ? stash(`<a href="${escapeHtml(url)}">${emphasis(escapeHtml(label))}</a>`) : match,
