@@ -1,0 +1,7 @@
+# 운영체제가 만드는 파일
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# 개인 설정 (Claude Code)
+.claude/settings.local.json

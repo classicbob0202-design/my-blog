@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>
+    // 깜빡임(FOUC) 방지: 저장된 선택 → 시스템 설정 순서로 테마를 정한다.
+    (() => {
+      let theme = null;
+      try {
+        theme = localStorage.getItem('theme');
+      } catch (error) {
+        theme = null;
+      }
+      if (theme !== 'light' && theme !== 'dark') {
+        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.dataset.theme = theme;
+    })();
+  </script>
+  <meta name="description" content="My Blog의 글">
+  <title>글 - My Blog</title>
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/theme.js" defer></script>
+  <script src="js/main.js" defer></script>
+  <script type="module" src="js/posts.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a class="site-header__title" href="index.html">My Blog</a>
+      <button class="theme-toggle" type="button" aria-label="다크 모드로 전환">🌙</button>
+      <button class="nav-toggle" type="button" aria-controls="site-nav" aria-expanded="false" aria-label="메뉴 열기">☰</button>
+      <nav class="nav" id="site-nav" aria-label="주 메뉴">
+        <ul class="nav__list">
+          <li><a class="nav__link" href="index.html">글 목록</a></li>
+          <li><a class="nav__link" href="about.html">소개</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main">
+    <article class="container post-detail" aria-live="polite">
+      <p class="page-text">글을 불러오는 중입니다…</p>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>© 2026 My Blog</p>
+    </div>
+  </footer>
+</body>
+</html>
